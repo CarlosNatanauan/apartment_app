@@ -1,6 +1,6 @@
 import 'package:apartment_app/features/landlord/presentation/providers/spaces_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/space_details_screen.dart';
-import 'package:apartment_app/features/landlord/presentation/screens/widgets/space_card.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/space_card.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

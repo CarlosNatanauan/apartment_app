@@ -2,8 +2,8 @@ class Space {
   final String id;
   final String name;
   final String joinCode;
-  final String? ownerId;  // ✅ Now optional
-  final DateTime createdAt;
+  final String? ownerId;  // ✅ Optional
+  final DateTime? createdAt;  // ✅ Also make this optional!
   final DateTime? deletedAt;
 
   Space({
@@ -11,7 +11,7 @@ class Space {
     required this.name,
     required this.joinCode,
     this.ownerId,  // ✅ Not required
-    required this.createdAt,
+    this.createdAt,  // ✅ Not required either!
     this.deletedAt,
   });
 
@@ -20,8 +20,10 @@ class Space {
       id: json['id'] as String,
       name: json['name'] as String,
       joinCode: json['joinCode'] as String,
-      ownerId: json['ownerId'] as String?,  // ✅ Nullable cast
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      ownerId: json['ownerId'] as String?,  // ✅ Nullable
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'] as String)
+          : null,  // ✅ Handle missing createdAt
       deletedAt: json['deletedAt'] != null
           ? DateTime.parse(json['deletedAt'] as String)
           : null,
@@ -33,9 +35,9 @@ class Space {
       'id': id,
       'name': name,
       'joinCode': joinCode,
-      if (ownerId != null) 'ownerId': ownerId,  // ✅ Only include if not null
-      'createdAt': createdAt.toIso8601String(),
-      'deletedAt': deletedAt?.toIso8601String(),
+      if (ownerId != null) 'ownerId': ownerId,
+      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
+      if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
     };
   }
 

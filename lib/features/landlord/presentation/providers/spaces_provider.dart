@@ -107,33 +107,46 @@ class SpacesNotifier extends Notifier<SpacesState> {
   }
 
   // Update space name
-  Future<void> updateSpaceName(String spaceId, String name) async {
-    try {
-      print('✏️ Updating space $spaceId: $name');
-      
-      final updatedSpace = await _repository.updateSpaceName(spaceId, name);
-      
-      print('✅ Space updated');
-      
-      // Update in list
-      final updatedSpaces = state.spaces.map((space) {
-        return space.id == spaceId ? updatedSpace : space;
-      }).toList();
-      
-      state = state.copyWith(spaces: updatedSpaces);
-    } on ApiException catch (e) {
-      print('❌ Failed to update space (ApiException): ${e.message}');
-      
-      state = state.copyWith(error: e.message);
-      rethrow;
-    } catch (e) {
-      print('❌ Failed to update space (Exception): $e');
-      
-      state = state.copyWith(error: 'Failed to update space');
-      rethrow;
-    }
+Future<void> updateSpaceName(String spaceId, String name) async {
+  try {
+    print('✏️ Updating space $spaceId: $name');
+    
+    final updatedSpace = await _repository.updateSpaceName(spaceId, name);
+    
+    print('✅ Space updated from API');
+    print('   Updated space data: ${updatedSpace.toString()}');
+    print('   ID: ${updatedSpace.id}');
+    print('   Name: ${updatedSpace.name}');
+    print('   JoinCode: ${updatedSpace.joinCode}');
+    print('   OwnerId: ${updatedSpace.ownerId}');
+    
+    // Update in list
+    print('📝 Updating local state...');
+    final updatedSpaces = state.spaces.map((space) {
+      if (space.id == spaceId) {
+        print('   Found space to update: ${space.name} -> ${updatedSpace.name}');
+        return updatedSpace;
+      }
+      return space;
+    }).toList();
+    
+    print('✅ Local state updated, setting new state...');
+    state = state.copyWith(spaces: updatedSpaces);
+    print('✅ State set successfully');
+    
+  } on ApiException catch (e) {
+    print('❌ Failed to update space (ApiException): ${e.message}');
+    
+    state = state.copyWith(error: e.message);
+    rethrow;
+  } catch (e, stackTrace) {
+    print('❌ Failed to update space (Exception): $e');
+    print('📍 Stack trace: $stackTrace');
+    
+    state = state.copyWith(error: 'Failed to update space');
+    rethrow;
   }
-
+}
   // Delete space
   Future<void> deleteSpace(String spaceId) async {
     try {

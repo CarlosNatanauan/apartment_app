@@ -1,5 +1,8 @@
 import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/spaces_provider.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/rooms_list_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/pending_requests_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/active_members_screen.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,12 +60,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
         );
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   void _copyJoinCode() {
@@ -292,9 +289,9 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
         title: Text(_currentSpace.name),
       ),
       body: RefreshIndicator(
-        onRefresh: _handleRefresh, // ✅ Pull-to-refresh
+        onRefresh: _handleRefresh,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(), // ✅ Always scrollable for refresh
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
               // Header
@@ -372,13 +369,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                         ),
                       ),
 
-                      // Created Date
-                      ListTile(
-                        leading: const Icon(Icons.calendar_today_outlined),
-                        title: const Text('Created'),
-                        subtitle: Text(_formatDate(_currentSpace.createdAt)),
-                      ),
-
                       // Space ID
                       ListTile(
                         leading: const Icon(Icons.tag_outlined),
@@ -395,33 +385,95 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
 
               const SizedBox(height: 16),
 
-              // Coming Soon: Rooms & Members
+              // ✅ Management Card (Rooms + Memberships)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Row(
+                  child: Column(
+                    children: [
+                      // Header
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
                           children: [
-                            const Icon(Icons.construction, color: AppTheme.warningColor),
+                            const Icon(Icons.settings_outlined, color: AppTheme.landlordColor),
                             const SizedBox(width: 12),
                             Text(
-                              'Coming Soon',
+                              'Management',
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '🏠 Rooms Management\n👥 Member Requests\n📊 Audit Logs',
-                          style: TextStyle(height: 1.5),
+                      ),
+                      const Divider(height: 1),
+
+                      // ✅ Rooms Management
+                      ListTile(
+                        leading: const Icon(Icons.door_front_door_outlined),
+                        title: const Text('Rooms Management'),
+                        subtitle: const Text('View and manage rooms'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RoomsListScreen(space: _currentSpace),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1),
+
+                      // ✅ Pending Requests (NEW - Active)
+                      ListTile(
+                        leading: const Icon(Icons.inbox_outlined, color: AppTheme.landlordColor),
+                        title: const Text('Pending Requests'),
+                        subtitle: const Text('Approve or reject join requests'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PendingRequestsScreen(space: _currentSpace),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1),
+
+                      // ✅ Active Members (NEW - Active)
+                      ListTile(
+                        leading: const Icon(Icons.people_outline, color: AppTheme.landlordColor),
+                        title: const Text('Active Members'),
+                        subtitle: const Text('View and manage tenants'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ActiveMembersScreen(space: _currentSpace),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1),
+
+                      // 📊 Audit Logs (Coming Soon)
+                      ListTile(
+                        leading: const Icon(Icons.history_outlined, color: AppTheme.textHint),
+                        title: const Text(
+                          'Audit Logs',
+                          style: TextStyle(color: AppTheme.textHint),
                         ),
-                      ],
-                    ),
+                        subtitle: const Text(
+                          'Coming soon',
+                          style: TextStyle(color: AppTheme.textHint),
+                        ),
+                        trailing: const Icon(Icons.lock_outline, color: AppTheme.textHint),
+                      ),
+                    ],
                   ),
                 ),
               ),

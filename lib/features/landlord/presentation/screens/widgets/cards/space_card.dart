@@ -74,11 +74,7 @@ class SpaceCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Created ${_formatDate(space.createdAt)}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+
                       ],
                     ),
                   ),
