@@ -117,38 +117,38 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
   }
 
   // Approve membership and assign room
-  Future<bool> approveMembership(String membershipId, String roomId, String spaceId) async {
+  // 🆕 UPDATED: Now accepts optional rent parameters
+  Future<void> approveMembership({
+    required String membershipId,
+    required String roomId,
+    required String spaceId,
+    int? monthlyRent,
+    DateTime? rentStartDate,
+    int? paymentDueDay,
+  }) async {
     try {
-      print('✅ Approving membership: $membershipId, room: $roomId');
-      
-      // Call approve API (returns minimal response)
-      await _repository.approveMembership(membershipId, roomId);
-      
-      print('✅ Membership approved');
-      
-      // Remove from pending list
-      final updatedPending = state.pendingRequests
-          .where((m) => m.id != membershipId)
-          .toList();
-      
-      state = state.copyWith(pendingRequests: updatedPending);
-      
-      // ✅ Reload active members to get complete data with user email and room number
+      final approvedMembership = await _repository.approveMembership(
+        membershipId: membershipId,
+        roomId: roomId,
+        monthlyRent: monthlyRent,
+        rentStartDate: rentStartDate,
+        paymentDueDay: paymentDueDay,
+      );
+
+      // Remove from pending
+      state = state.copyWith(
+        pendingRequests: state.pendingRequests
+            .where((m) => m.id != membershipId)
+            .toList(),
+      );
+
+      // Refresh active members
       await loadActiveMembers(spaceId);
-      
-      return true;
-    } on ApiException catch (e) {
-      print('❌ Failed to approve membership (ApiException): ${e.message}');
-      
-      state = state.copyWith(error: e.message);
-      rethrow;
-    } catch (e) {
-      print('❌ Failed to approve membership (Exception): $e');
-      
-      state = state.copyWith(error: 'Failed to approve membership');
+    } on ApiException {
       rethrow;
     }
   }
+
 
   // Reject membership
   Future<bool> rejectMembership(String membershipId) async {

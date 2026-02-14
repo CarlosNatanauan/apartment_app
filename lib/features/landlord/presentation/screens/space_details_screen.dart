@@ -3,6 +3,7 @@ import 'package:apartment_app/features/landlord/presentation/providers/spaces_pr
 import 'package:apartment_app/features/landlord/presentation/screens/rooms_list_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/pending_requests_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/active_members_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/audit_logs_screen.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,7 +33,7 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
     _currentSpace = widget.space;
   }
 
-  // ✅ Pull-to-refresh: Fetch latest space details
+  // Pull-to-refresh: Fetch latest space details
   Future<void> _handleRefresh() async {
     try {
       // Reload all spaces to get latest data
@@ -137,7 +138,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
             );
 
         if (mounted) {
-          // Update local state
           setState(() {
             _currentSpace = _currentSpace.copyWith(name: result);
           });
@@ -155,7 +155,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
             ),
           );
           
-          // ✅ Return true to trigger list refresh
           Navigator.pop(context, true);
         }
       } on ApiException catch (e) {
@@ -241,7 +240,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
         await ref.read(spacesProvider.notifier).deleteSpace(_currentSpace.id);
 
         if (mounted) {
-          // ✅ Return true to trigger list refresh
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -333,7 +331,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                 child: Card(
                   child: Column(
                     children: [
-                      // Header
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -351,7 +348,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // Join Code
                       ListTile(
                         leading: const Icon(Icons.vpn_key_outlined),
                         title: const Text('Join Code'),
@@ -369,7 +365,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                         ),
                       ),
 
-                      // Space ID
                       ListTile(
                         leading: const Icon(Icons.tag_outlined),
                         title: const Text('Space ID'),
@@ -385,13 +380,12 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
 
               const SizedBox(height: 16),
 
-              // ✅ Management Card (Rooms + Memberships)
+              // Management Card
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Card(
                   child: Column(
                     children: [
-                      // Header
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -409,7 +403,7 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // ✅ Rooms Management
+                      // Rooms Management
                       ListTile(
                         leading: const Icon(Icons.door_front_door_outlined),
                         title: const Text('Rooms Management'),
@@ -426,7 +420,7 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // ✅ Pending Requests (NEW - Active)
+                      // Pending Requests
                       ListTile(
                         leading: const Icon(Icons.inbox_outlined, color: AppTheme.landlordColor),
                         title: const Text('Pending Requests'),
@@ -443,7 +437,7 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // ✅ Active Members (NEW - Active)
+                      // Active Members
                       ListTile(
                         leading: const Icon(Icons.people_outline, color: AppTheme.landlordColor),
                         title: const Text('Active Members'),
@@ -460,18 +454,20 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // 📊 Audit Logs (Coming Soon)
+                      // ✅ Audit Logs (NOW ACTIVE!)
                       ListTile(
-                        leading: const Icon(Icons.history_outlined, color: AppTheme.textHint),
-                        title: const Text(
-                          'Audit Logs',
-                          style: TextStyle(color: AppTheme.textHint),
-                        ),
-                        subtitle: const Text(
-                          'Coming soon',
-                          style: TextStyle(color: AppTheme.textHint),
-                        ),
-                        trailing: const Icon(Icons.lock_outline, color: AppTheme.textHint),
+                        leading: const Icon(Icons.history_outlined, color: AppTheme.landlordColor),
+                        title: const Text('Audit Logs'),
+                        subtitle: const Text('View action history'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AuditLogsScreen(space: _currentSpace),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -486,7 +482,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                 child: Card(
                   child: Column(
                     children: [
-                      // Edit Name
                       ListTile(
                         leading: const Icon(Icons.edit_outlined),
                         title: const Text('Edit Space Name'),
@@ -501,7 +496,6 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       ),
                       const Divider(height: 1),
 
-                      // Delete Space
                       ListTile(
                         leading: const Icon(Icons.delete_outline, color: AppTheme.errorColor),
                         title: const Text(

@@ -1,3 +1,4 @@
+import 'package:apartment_app/features/tenant/presentation/screens/my_memberships_screen.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,8 +14,8 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const _MySpacesPlaceholder(),
-    const _JoinSpacePlaceholder(),
+    const MyMembershipsScreen(),  // ✅ Use REAL screen, not placeholder!
+    const _DashboardPlaceholder(),
     const _ProfilePlaceholder(),
   ];
 
@@ -41,14 +42,14 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
         unselectedItemColor: AppTheme.textHint,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
+            icon: Icon(Icons.apartment_outlined),
+            activeIcon: Icon(Icons.apartment),
             label: 'My Spaces',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            activeIcon: Icon(Icons.add_circle),
-            label: 'Join Space',
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
@@ -61,83 +62,15 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
   }
 }
 
-// My Spaces Placeholder
-class _MySpacesPlaceholder extends StatelessWidget {
-  const _MySpacesPlaceholder();
+// Dashboard Placeholder
+class _DashboardPlaceholder extends StatelessWidget {
+  const _DashboardPlaceholder();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Spaces'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push('/profile'),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppTheme.tenantColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.home,
-                  size: 64,
-                  color: AppTheme.tenantColor,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'No Memberships Yet',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Join a space to see your memberships here.',
-                style: Theme.of(context).textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Switch to Join tab
-                  final state = context.findAncestorStateOfType<_TenantMainScreenState>();
-                  state?.setState(() {
-                    state._selectedIndex = 1;
-                  });
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Join a Space'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.tenantColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Join Space Placeholder
-class _JoinSpacePlaceholder extends StatelessWidget {
-  const _JoinSpacePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Join Space'),
+        title: const Text('Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
@@ -165,12 +98,12 @@ class _JoinSpacePlaceholder extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Join Feature Coming Soon',
+                'Dashboard Coming Soon',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter a join code from your landlord to join a space.',
+                'View your rent summary, upcoming payments, and maintenance requests here.',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -182,7 +115,7 @@ class _JoinSpacePlaceholder extends StatelessWidget {
   }
 }
 
-// Profile Placeholder
+// Profile Placeholder (actual profile is separate route)
 class _ProfilePlaceholder extends StatelessWidget {
   const _ProfilePlaceholder();
 

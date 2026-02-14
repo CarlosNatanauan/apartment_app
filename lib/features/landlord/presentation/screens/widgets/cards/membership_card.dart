@@ -1,4 +1,5 @@
 import 'package:apartment_app/features/landlord/data/models/membership_model.dart';
+import 'package:apartment_app/core/utils/currency_formatter.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +23,20 @@ class MembershipCard extends StatelessWidget {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+
+  String _getDaySuffix(int day) {
+    if (day >= 11 && day <= 13) return 'th';
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
   }
 
   @override
@@ -97,25 +112,118 @@ class MembershipCard extends StatelessWidget {
               ],
             ),
             
-            // Room Info (for active members)
-            if (membership.isActive && membership.roomNumber != null) ...[
+            // Room Info & Rent Details (for active members)
+            // ✅ All active members now have complete rent info (required fields)
+            if (membership.isActive) ...[
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.door_front_door_outlined,
-                    size: 16,
-                    color: AppTheme.textSecondary,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.landlordColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppTheme.landlordColor.withOpacity(0.1),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Room ${membership.roomNumber}',
-                    style: const TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Room Number
+                    if (membership.roomNumber != null)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.door_front_door_outlined,
+                            size: 16,
+                            color: AppTheme.landlordColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Room ${membership.roomNumber}',
+                            style: const TextStyle(
+                              color: AppTheme.landlordColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    
+                    // Rent Information (all required for active members)
+                    if (membership.monthlyRent != null || 
+                        membership.rentStartDate != null || 
+                        membership.paymentDueDay != null) ...[
+                      const SizedBox(height: 8),
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      
+                      // Monthly Rent
+                      if (membership.monthlyRent != null)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.attach_money,
+                              size: 16,
+                              color: AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${CurrencyFormatter.formatCents(membership.monthlyRent)}/month',
+                              style: const TextStyle(
+                                color: AppTheme.textPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      
+                      const SizedBox(height: 6),
+                      
+                      // Rent Start Date
+                      if (membership.rentStartDate != null)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Starts: ${DateFormatter.formatDate(membership.rentStartDate)}',
+                              style: const TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      
+                      const SizedBox(height: 6),
+                      
+                      // Payment Due Day
+                      if (membership.paymentDueDay != null)
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.event,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Due: ${membership.paymentDueDay}${_getDaySuffix(membership.paymentDueDay!)} of month',
+                              style: const TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ],
+                ),
               ),
             ],
             

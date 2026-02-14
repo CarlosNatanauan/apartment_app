@@ -18,95 +18,114 @@ class RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Dynamic colors based on occupancy
+    final statusColor = room.isOccupied ? AppTheme.errorColor : AppTheme.successColor;
+    final statusText = room.isOccupied ? 'Occupied' : 'Available';
+    
     return Card(
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(12),  // ✅ Reduced from 16
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,  // ✅ Added to prevent overflow
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Room Icon
               Container(
-                padding: const EdgeInsets.all(10),  // ✅ Reduced from 12
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppTheme.landlordColor.withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),  // ✅ Dynamic color
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.door_front_door_outlined,
-                  size: 28,  // ✅ Reduced from 32
-                  color: AppTheme.landlordColor,
+                  size: 28,
+                  color: statusColor,  // ✅ Dynamic color
                 ),
               ),
               
-              const SizedBox(height: 8),  // ✅ Reduced from 12
+              const SizedBox(height: 8),
               
-              // Room Number (Large)
-              Flexible(  // ✅ Wrapped in Flexible
+              // Room Number
+              Flexible(
                 child: Text(
                   room.roomNumber,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
-                    fontSize: 22,  // ✅ Slightly smaller
+                    fontSize: 22,
                   ),
                   textAlign: TextAlign.center,
-                  maxLines: 1,  // ✅ Prevent multi-line
-                  overflow: TextOverflow.ellipsis,  // ✅ Handle long numbers
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               
-              const SizedBox(height: 6),  // ✅ Reduced from 8
+              const SizedBox(height: 6),
               
-              // Status Badge (Available)
+              // ✅ Dynamic Status Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),  // ✅ Reduced
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppTheme.successColor.withOpacity(0.1),
+                  color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Available',
+                child: Text(
+                  statusText,
                   style: TextStyle(
-                    color: AppTheme.successColor,
-                    fontSize: 11,  // ✅ Reduced from 12
+                    color: statusColor,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               
-              const SizedBox(height: 8),  // ✅ Reduced from 12
+              // 🆕 NEW: Show tenant email if occupied
+              if (room.isOccupied && room.occupiedBy != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  room.occupiedBy!,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              
+              const SizedBox(height: 8),
               
               // Actions Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                mainAxisSize: MainAxisSize.min,  // ✅ Added
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Edit Button
                   if (onEdit != null)
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 18),  // ✅ Reduced from 20
+                      icon: const Icon(Icons.edit_outlined, size: 18),
                       onPressed: onEdit,
                       tooltip: 'Edit',
                       color: AppTheme.landlordColor,
-                      padding: EdgeInsets.zero,  // ✅ Reduced padding
-                      constraints: const BoxConstraints(),  // ✅ Removed default constraints
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   
                   if (onEdit != null && onDelete != null)
-                    const SizedBox(width: 8),  // ✅ Spacing between buttons
+                    const SizedBox(width: 8),
                   
-                  // Delete Button
+                  // Delete Button (disabled if occupied)
                   if (onDelete != null)
                     IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18),  // ✅ Reduced from 20
-                      onPressed: onDelete,
-                      tooltip: 'Delete',
-                      color: AppTheme.errorColor,
-                      padding: EdgeInsets.zero,  // ✅ Reduced padding
-                      constraints: const BoxConstraints(),  // ✅ Removed default constraints
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      onPressed: room.isOccupied ? null : onDelete,  // ✅ Disable if occupied
+                      tooltip: room.isOccupied ? 'Cannot delete occupied room' : 'Delete',
+                      color: room.isOccupied ? AppTheme.textHint : AppTheme.errorColor,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                 ],
               ),

@@ -2,8 +2,8 @@ import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/data/models/space_model.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/memberships_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/rooms_provider.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/approve_membership_dialog.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/membership_card.dart';
-import 'package:apartment_app/features/landlord/presentation/screens/widgets/dialogs/room_selector_dialog.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,41 +39,54 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
     ]);
   }
 
-  // Show room selector and approve
+  // Show comprehensive approval dialog with rent inputs
   Future<void> _handleApprove(String membershipId, String userEmail) async {
-    // Get available rooms (not occupied)
     final roomsState = ref.read(roomsProvider);
-    final availableRooms = roomsState.rooms; // TODO: Filter out occupied rooms
+    
+    // ✅ UPDATED: Filter to only show AVAILABLE rooms
+    final availableRooms = roomsState.rooms.where((room) => !room.isOccupied).toList();
     
     if (availableRooms.isEmpty) {
       if (mounted) {
+        // ✅ IMPROVED: More helpful error message
+        final totalRooms = roomsState.rooms.length;
+        final occupiedRooms = roomsState.rooms.where((r) => r.isOccupied).length;
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No available rooms. Please create rooms first.'),
+          SnackBar(
+            content: Text(
+              totalRooms == 0
+                  ? 'No rooms created. Please create rooms first.'
+                  : 'All $totalRooms rooms are occupied ($occupiedRooms/$totalRooms). Cannot approve new member.',
+            ),
             backgroundColor: AppTheme.warningColor,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
       return;
     }
 
-    // Show room selector dialog
-    final selectedRoomId = await showDialog<String>(
+    // Show comprehensive approval dialog with ONLY available rooms
+    final approvalData = await showDialog<ApprovalData>(
       context: context,
-      builder: (context) => RoomSelectorDialog(
-        availableRooms: availableRooms,
-        title: 'Assign Room to $userEmail',
+      builder: (context) => ApproveMembershipDialog(
+        availableRooms: availableRooms,  // ✅ Only available rooms
+        tenantEmail: userEmail,
       ),
     );
 
-    if (selectedRoomId == null || !mounted) return;
+    if (approvalData == null || !mounted) return;
 
-    // Approve membership with selected room
+    // Approve membership with room and rent info
     try {
       await ref.read(membershipsProvider.notifier).approveMembership(
-            membershipId,
-            selectedRoomId,
-            widget.space.id,
+            membershipId: membershipId,
+            roomId: approvalData.roomId,
+            spaceId: widget.space.id,
+            monthlyRent: approvalData.monthlyRent,
+            rentStartDate: approvalData.rentStartDate,
+            paymentDueDay: approvalData.paymentDueDay,
           );
 
       if (mounted) {
@@ -83,11 +96,10 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                // ✅ Wrap Text in Expanded to prevent overflow
                 Expanded(
                   child: Text(
                     '$userEmail approved and assigned to room',
-                    overflow: TextOverflow.ellipsis,  // ✅ Add ellipsis for very long emails
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -153,7 +165,6 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                // ✅ Wrap Text in Expanded
                 Expanded(
                   child: Text(
                     '$userEmail rejected',

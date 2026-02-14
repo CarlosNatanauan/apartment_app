@@ -1,5 +1,6 @@
 import 'package:apartment_app/core/api/api_client.dart';
 import 'package:apartment_app/core/api/api_response.dart';
+import 'package:apartment_app/core/utils/currency_formatter.dart';
 import '../models/membership_model.dart';
 
 class MembershipsRepository {
@@ -58,11 +59,34 @@ class MembershipsRepository {
   }
 
   // Approve a pending request and assign room
-  Future<Membership> approveMembership(String membershipId, String roomId) async {
+  // 🆕 UPDATED: Now includes optional rent fields
+  Future<Membership> approveMembership({
+    required String membershipId,
+    required String roomId,
+    int? monthlyRent,
+    DateTime? rentStartDate,
+    int? paymentDueDay,
+  }) async {
     try {
+      // Build request body
+      final Map<String, dynamic> requestData = {
+        'roomId': roomId,
+      };
+
+      // Add rent fields if provided
+      if (monthlyRent != null) {
+        requestData['monthlyRent'] = monthlyRent;
+      }
+      if (rentStartDate != null) {
+        requestData['rentStartDate'] = DateFormatter.formatForApi(rentStartDate);
+      }
+      if (paymentDueDay != null) {
+        requestData['paymentDueDay'] = paymentDueDay;
+      }
+
       final response = await _apiClient.post(
         '/memberships/$membershipId/approve',
-        data: {'roomId': roomId},
+        data: requestData,
         fromJson: (data) => Membership.fromJson(data),
       );
 

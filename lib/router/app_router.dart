@@ -1,5 +1,8 @@
 import 'package:apartment_app/features/auth/presentation/screens/home/home_screen.dart';
-import 'package:apartment_app/features/auth/presentation/screens/home/profile_screen.dart'; // ✅ NEW
+import 'package:apartment_app/features/auth/presentation/screens/home/profile_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/landlord_main_screen.dart'; // ✅ NEW
+import 'package:apartment_app/features/tenant/presentation/screens/tenant_main_screen.dart'; // ✅ NEW
+import 'package:apartment_app/features/tenant/presentation/screens/join_space_screen.dart'; // ✅ NEW
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,11 +25,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isInitialized = authState.isInitialized;
       final isLoading = authState.isLoading;
       final currentPath = state.matchedLocation;
+      final userRole = authState.user?.role; // ✅ NEW: Get user role
 
       print('🧭 Router redirect check:');
       print('   Path: $currentPath');
       print('   Initialized: $isInitialized');
       print('   Authenticated: $isAuthenticated');
+      print('   Role: $userRole'); // ✅ NEW
       print('   Loading: $isLoading');
 
       // Don't redirect if currently loading
@@ -41,21 +46,37 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/';
       }
 
-      // After initialized, redirect from splash based on auth status
+      // ✅ UPDATED: After initialized, redirect from splash based on role
       if (isInitialized && currentPath == '/') {
         if (isAuthenticated) {
-          print('   → Redirecting to home (authenticated)');
-          return '/home';
+          if (userRole == 'LANDLORD') {
+            print('   → Redirecting to /landlord (LANDLORD user)');
+            return '/landlord';
+          } else if (userRole == 'TENANT') {
+            print('   → Redirecting to /tenant (TENANT user)');
+            return '/tenant';
+          } else {
+            print('   → Redirecting to /home (unknown role)');
+            return '/home';
+          }
         } else {
           print('   → Redirecting to login (not authenticated)');
           return '/auth/login';
         }
       }
 
-      // If authenticated and on auth pages, go to home
+      // ✅ UPDATED: If authenticated and on auth pages, redirect based on role
       if (isAuthenticated && currentPath.startsWith('/auth')) {
-        print('   → Redirecting to home (already authenticated)');
-        return '/home';
+        if (userRole == 'LANDLORD') {
+          print('   → Redirecting to /landlord (already authenticated as LANDLORD)');
+          return '/landlord';
+        } else if (userRole == 'TENANT') {
+          print('   → Redirecting to /tenant (already authenticated as TENANT)');
+          return '/tenant';
+        } else {
+          print('   → Redirecting to /home (already authenticated, unknown role)');
+          return '/home';
+        }
       }
 
       // If not authenticated and trying to access protected pages, go to login
@@ -87,10 +108,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/home',
         builder: (context, state) => const HomeScreen(),
       ),
-      // ✅ NEW: Profile route
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      // ✅ NEW: Landlord routes
+      GoRoute(
+        path: '/landlord',
+        builder: (context, state) => const LandlordMainScreen(),
+      ),
+      // ✅ NEW: Tenant routes
+      GoRoute(
+        path: '/tenant',
+        builder: (context, state) => const TenantMainScreen(),
+      ),
+      GoRoute(
+        path: '/tenant/join-space',
+        builder: (context, state) => const JoinSpaceScreen(),
       ),
     ],
   );
