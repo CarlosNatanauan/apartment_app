@@ -147,17 +147,25 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   // Register
-  Future<void> register(String email, String password, String role) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+Future<void> register(
+  String firstName,    // 🆕 NEW
+  String lastName,     // 🆕 NEW
+  String email,
+  String password,
+  String role,
+) async {
+  state = state.copyWith(isLoading: true, clearError: true);
+  
+  try {
+    print('📝 Attempting registration for: $email as $role');
     
-    try {
-      print('📝 Attempting registration for: $email as $role');
-      
-      final user = await _repository.register(
-        email: email,
-        password: password,
-        role: role,
-      );
+    final user = await _repository.register(
+      firstName: firstName,   // 🆕 NEW
+      lastName: lastName,     // 🆕 NEW
+      email: email,
+      password: password,
+      role: role,
+    );
       
       print('✅ Registration successful: $user');
       

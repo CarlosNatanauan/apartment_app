@@ -4,6 +4,7 @@ import 'package:apartment_app/features/landlord/presentation/screens/rooms_list_
 import 'package:apartment_app/features/landlord/presentation/screens/pending_requests_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/active_members_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/audit_logs_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/space_maintenance_screen.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -453,6 +454,27 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                         },
                       ),
                       const Divider(height: 1),
+
+
+// 🆕 ADD THIS NEW MAINTENANCE SECTION
+ListTile(
+  leading: const Icon(Icons.build_circle_outlined, color: AppTheme.warningColor),
+  title: const Text('Maintenance'),
+  subtitle: const Text('View and manage maintenance requests'),
+  trailing: const Icon(Icons.chevron_right),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SpaceMaintenanceScreen(
+          spaceId: _currentSpace.id,
+          spaceName: _currentSpace.name,
+        ),
+      ),
+    );
+  },
+),
+const Divider(height: 1),
 
                       // ✅ Audit Logs (NOW ACTIVE!)
                       ListTile(

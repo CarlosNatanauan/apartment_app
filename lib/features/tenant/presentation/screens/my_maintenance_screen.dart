@@ -1,0 +1,269 @@
+import 'package:apartment_app/core/api/api_response.dart';
+import 'package:apartment_app/features/tenant/presentation/provider/maintenance_provider.dart';
+import 'package:apartment_app/features/tenant/presentation/screens/widtgets/cards/maintenance_request_card.dart';
+import 'package:apartment_app/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+class MyMaintenanceScreen extends ConsumerStatefulWidget {
+  const MyMaintenanceScreen({super.key});
+
+  @override
+  ConsumerState<MyMaintenanceScreen> createState() => _MyMaintenanceScreenState();
+}
+
+class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    
+    // Load requests on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(maintenanceProvider.notifier).loadRequests();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleRefresh() async {
+    await ref.read(maintenanceProvider.notifier).loadRequests();
+  }
+
+  Future<void> _handleCancel(String requestId, String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Request'),
+        content: Text(
+          'Are you sure you want to cancel "$title"?\n\nThis action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await ref.read(maintenanceProvider.notifier).cancelRequest(requestId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Request cancelled successfully',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to cancel request: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(maintenanceProvider);
+    final allRequests = state.requests;
+    final pendingRequests = state.pendingRequests;
+    final inProgressRequests = state.inProgressRequests;
+    final completedRequests = state.completedRequests;
+    final isLoading = state.isLoading;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Maintenance'),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: AppTheme.tenantColor,
+          unselectedLabelColor: AppTheme.textSecondary,
+          indicatorColor: AppTheme.tenantColor,
+          tabs: [
+            Tab(
+              text: 'All (${allRequests.length})',
+            ),
+            Tab(
+              text: 'Pending (${pendingRequests.length})',
+            ),
+            Tab(
+              text: 'Active (${inProgressRequests.length})',
+            ),
+          ],
+        ),
+      ),
+      body: isLoading && allRequests.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildRequestsList(allRequests, 'all'),
+                _buildRequestsList(pendingRequests, 'pending'),
+                _buildRequestsList(inProgressRequests, 'active'),
+              ],
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/tenant/maintenance/create'),
+        icon: const Icon(Icons.add),
+        label: const Text('New Request'),
+        backgroundColor: AppTheme.tenantColor,
+      ),
+    );
+  }
+
+  Widget _buildRequestsList(List requests, String type) {
+    if (requests.isEmpty) {
+      return _buildEmptyState(type);
+    }
+
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.only(top: 8, bottom: 80),
+        itemCount: requests.length,
+        itemBuilder: (context, index) {
+          final request = requests[index];
+          return MaintenanceRequestCard(
+            request: request,
+            onTap: () => context.push(
+              '/tenant/maintenance/details/${request.id}',
+            ),
+            onCancel: request.canCancel
+                ? () => _handleCancel(request.id, request.title)
+                : null,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String type) {
+    String title;
+    String message;
+    IconData icon;
+
+    switch (type) {
+      case 'pending':
+        title = 'No Pending Requests';
+        message = 'You have no maintenance requests awaiting response.';
+        icon = Icons.pending_actions;
+        break;
+      case 'active':
+        title = 'No Active Requests';
+        message = 'You have no maintenance requests in progress.';
+        icon = Icons.construction;
+        break;
+      default:
+        title = 'No Maintenance Requests';
+        message =
+            'Create a request to report any issues with your apartment.';
+        icon = Icons.build_circle_outlined;
+    }
+
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: ListView(
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height - 300,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppTheme.tenantColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        icon,
+                        size: 64,
+                        color: AppTheme.tenantColor,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      message,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    if (type == 'all') ...[
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            context.push('/tenant/maintenance/create'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('Create First Request'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.tenantColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

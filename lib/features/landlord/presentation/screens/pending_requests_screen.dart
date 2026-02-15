@@ -1,3 +1,4 @@
+// pending_requests_screen.dart
 import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/data/models/space_model.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/memberships_provider.dart';
@@ -17,21 +18,22 @@ class PendingRequestsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PendingRequestsScreen> createState() => _PendingRequestsScreenState();
+  ConsumerState<PendingRequestsScreen> createState() =>
+      _PendingRequestsScreenState();
 }
 
 class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    // Load pending requests and rooms when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(membershipsProvider.notifier).loadPendingRequests(widget.space.id);
+      ref
+          .read(membershipsProvider.notifier)
+          .loadPendingRequests(widget.space.id);
       ref.read(roomsProvider.notifier).loadRooms(widget.space.id);
     });
   }
 
-  // Pull-to-refresh handler
   Future<void> _handleRefresh() async {
     await Future.wait([
       ref.read(membershipsProvider.notifier).loadPendingRequests(widget.space.id),
@@ -39,19 +41,22 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
     ]);
   }
 
-  // Show comprehensive approval dialog with rent inputs
-  Future<void> _handleApprove(String membershipId, String userEmail) async {
+  // ✅ UPDATED: use displayName (name preferred, fallback email)
+  Future<void> _handleApprove(
+    String membershipId,
+    String displayName,
+    String tenantEmailForDialog,
+  ) async {
     final roomsState = ref.read(roomsProvider);
-    
-    // ✅ UPDATED: Filter to only show AVAILABLE rooms
-    final availableRooms = roomsState.rooms.where((room) => !room.isOccupied).toList();
-    
+
+    final availableRooms =
+        roomsState.rooms.where((room) => !room.isOccupied).toList();
+
     if (availableRooms.isEmpty) {
       if (mounted) {
-        // ✅ IMPROVED: More helpful error message
         final totalRooms = roomsState.rooms.length;
         final occupiedRooms = roomsState.rooms.where((r) => r.isOccupied).length;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -67,18 +72,16 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
       return;
     }
 
-    // Show comprehensive approval dialog with ONLY available rooms
     final approvalData = await showDialog<ApprovalData>(
       context: context,
       builder: (context) => ApproveMembershipDialog(
-        availableRooms: availableRooms,  // ✅ Only available rooms
-        tenantEmail: userEmail,
+        availableRooms: availableRooms,
+        tenantEmail: tenantEmailForDialog,
       ),
     );
 
     if (approvalData == null || !mounted) return;
 
-    // Approve membership with room and rent info
     try {
       await ref.read(membershipsProvider.notifier).approveMembership(
             membershipId: membershipId,
@@ -98,7 +101,7 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$userEmail approved and assigned to room',
+                    '$displayName approved and assigned to room',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -129,13 +132,14 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
     }
   }
 
-  // Reject membership
-  Future<void> _handleReject(String membershipId, String userEmail) async {
+  // ✅ UPDATED: use displayName
+  Future<void> _handleReject(String membershipId, String displayName) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reject Request'),
-        content: Text('Are you sure you want to reject the request from $userEmail?'),
+        content:
+            Text('Are you sure you want to reject the request from $displayName?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -167,7 +171,7 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$userEmail rejected',
+                    '$displayName rejected',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -219,15 +223,22 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                     itemCount: pendingRequests.length,
                     itemBuilder: (context, index) {
                       final request = pendingRequests[index];
+
+                      final displayName =
+                          request.tenantFullName ?? request.userEmail ?? 'Tenant';
+                      final tenantEmailForDialog =
+                          request.userEmail ?? displayName;
+
                       return MembershipCard(
                         membership: request,
                         onApprove: () => _handleApprove(
                           request.id,
-                          request.userEmail ?? 'User',
+                          displayName,
+                          tenantEmailForDialog,
                         ),
                         onReject: () => _handleReject(
                           request.id,
-                          request.userEmail ?? 'User',
+                          displayName,
                         ),
                       );
                     },
@@ -284,7 +295,8 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.info_outline, size: 20, color: AppTheme.landlordColor),
+                              Icon(Icons.info_outline,
+                                  size: 20, color: AppTheme.landlordColor),
                               SizedBox(width: 8),
                               Text(
                                 'Share Join Code',

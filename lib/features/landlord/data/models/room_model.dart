@@ -1,13 +1,57 @@
+class Occupant {
+  final String? firstName;
+  final String? lastName;
+  final String? fullName;
+  final String? email;
+
+  const Occupant({
+    this.firstName,
+    this.lastName,
+    this.fullName,
+    this.email,
+  });
+
+  String get displayName {
+    final fn = firstName?.trim();
+    final ln = lastName?.trim();
+
+    if ((fn ?? '').isNotEmpty && (ln ?? '').isNotEmpty) return '$fn $ln';
+    if ((fullName ?? '').trim().isNotEmpty) return fullName!.trim();
+    if ((email ?? '').trim().isNotEmpty) return email!.trim();
+    return 'Unknown';
+  }
+
+  factory Occupant.fromJson(Map<String, dynamic> json) {
+    return Occupant(
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
+      fullName: json['fullName'] as String?,
+      email: json['email'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (firstName != null) 'firstName': firstName,
+      if (lastName != null) 'lastName': lastName,
+      if (fullName != null) 'fullName': fullName,
+      if (email != null) 'email': email,
+    };
+  }
+}
+
 class Room {
   final String id;
   final String roomNumber;
   final String? spaceId;
   final DateTime? createdAt;
   final DateTime? deletedAt;
-  
-  // 🆕 NEW: Occupancy status
+
+  // ✅ Occupancy status
   final bool isOccupied;
-  final String? occupiedBy;  // Tenant email
+
+  // ✅ NEW: occupant object from backend
+  final Occupant? occupant;
 
   Room({
     required this.id,
@@ -15,19 +59,21 @@ class Room {
     this.spaceId,
     this.createdAt,
     this.deletedAt,
-    this.isOccupied = false,  // Default to available
-    this.occupiedBy,
+    this.isOccupied = false,
+    this.occupant,
   });
 
   factory Room.fromJson(Map<String, dynamic> json) {
-    // Handle roomNumber as both int and String
     final roomNumberRaw = json['roomNumber'];
     final roomNumber = roomNumberRaw?.toString() ?? '';
-    
-    // 🆕 NEW: Parse occupancy status
+
     final isOccupied = json['isOccupied'] as bool? ?? false;
-    final occupiedBy = json['occupiedBy'] as String?;
-    
+
+    final occupantJson = json['occupant'];
+    final occupant = occupantJson is Map<String, dynamic>
+        ? Occupant.fromJson(occupantJson)
+        : null;
+
     return Room(
       id: json['id'] as String,
       roomNumber: roomNumber,
@@ -39,7 +85,7 @@ class Room {
           ? DateTime.parse(json['deletedAt'] as String)
           : null,
       isOccupied: isOccupied,
-      occupiedBy: occupiedBy,
+      occupant: occupant,
     );
   }
 
@@ -51,7 +97,7 @@ class Room {
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
       if (deletedAt != null) 'deletedAt': deletedAt!.toIso8601String(),
       'isOccupied': isOccupied,
-      if (occupiedBy != null) 'occupiedBy': occupiedBy,
+      if (occupant != null) 'occupant': occupant!.toJson(),
     };
   }
 
@@ -62,7 +108,7 @@ class Room {
     DateTime? createdAt,
     DateTime? deletedAt,
     bool? isOccupied,
-    String? occupiedBy,
+    Occupant? occupant,
   }) {
     return Room(
       id: id ?? this.id,
@@ -71,13 +117,26 @@ class Room {
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       isOccupied: isOccupied ?? this.isOccupied,
-      occupiedBy: occupiedBy ?? this.occupiedBy,
+      occupant: occupant ?? this.occupant,
     );
   }
 
-  // 🆕 NEW: Helper getter
+  // Helper getter
   bool get isAvailable => !isOccupied;
 
+  // ✅ Backwards-compatible getter (so existing UI still works)
+  String? get occupiedBy => occupant?.email;
+
+  // ✅ Convenience: show name in UI
+  String? get occupiedByName => occupant?.displayName;
+
   @override
-  String toString() => 'Room(id: $id, roomNumber: $roomNumber, isOccupied: $isOccupied, occupiedBy: ${occupiedBy ?? "none"})';
+  String toString() {
+    return 'Room('
+        'id: $id, '
+        'roomNumber: $roomNumber, '
+        'isOccupied: $isOccupied, '
+        'occupant: ${occupant?.email ?? "none"}'
+        ')';
+  }
 }

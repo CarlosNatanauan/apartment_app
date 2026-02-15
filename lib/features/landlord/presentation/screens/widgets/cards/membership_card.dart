@@ -1,3 +1,4 @@
+// membership_card.dart
 import 'package:apartment_app/features/landlord/data/models/membership_model.dart';
 import 'package:apartment_app/core/utils/currency_formatter.dart';
 import 'package:apartment_app/theme/app_theme.dart';
@@ -20,8 +21,10 @@ class MembershipCard extends StatelessWidget {
   });
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
@@ -39,46 +42,86 @@ class MembershipCard extends StatelessWidget {
     }
   }
 
+  String _initials() {
+    final first = (membership.userFirstName ?? '').trim();
+    final last = (membership.userLastName ?? '').trim();
+
+    if (first.isNotEmpty && last.isNotEmpty) {
+      return '${first[0]}${last[0]}'.toUpperCase();
+    }
+    if (first.isNotEmpty) return first[0].toUpperCase();
+    if (membership.userEmail != null && membership.userEmail!.trim().isNotEmpty) {
+      return membership.userEmail!.trim()[0].toUpperCase();
+    }
+    return 'T';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isPending = membership.isPending;
-    
+
+    final displayName =
+        membership.tenantFullName ?? membership.userEmail ?? 'Unknown Tenant';
+    final email = membership.userEmail;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: Email + Status Badge
+            // Header: Name + Email + Status Badge
             Row(
               children: [
-                // User Icon
+                // Avatar (initials)
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: AppTheme.landlordColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.person_outline,
-                    size: 20,
-                    color: AppTheme.landlordColor,
+                  alignment: Alignment.center,
+                  child: Text(
+                    _initials(),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.landlordColor,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                
-                // Email
+
+                // Name + Email + Joined
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Name (primary)
                       Text(
-                        membership.userEmail ?? 'Unknown User',
+                        displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+
+                      // Email (secondary) - show only if we also have a name
+                      if (membership.tenantFullName != null && email != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textHint,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+
                       if (membership.createdAt != null) ...[
                         const SizedBox(height: 2),
                         Text(
@@ -92,12 +135,14 @@ class MembershipCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // Status Badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppTheme.getStatusColor(membership.status).withOpacity(0.1),
+                    color: AppTheme.getStatusColor(membership.status)
+                        .withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -111,9 +156,8 @@ class MembershipCard extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             // Room Info & Rent Details (for active members)
-            // ✅ All active members now have complete rent info (required fields)
             if (membership.isActive) ...[
               const SizedBox(height: 12),
               Container(
@@ -148,15 +192,15 @@ class MembershipCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                    
-                    // Rent Information (all required for active members)
-                    if (membership.monthlyRent != null || 
-                        membership.rentStartDate != null || 
+
+                    // Rent Information
+                    if (membership.monthlyRent != null ||
+                        membership.rentStartDate != null ||
                         membership.paymentDueDay != null) ...[
                       const SizedBox(height: 8),
                       const Divider(height: 1),
                       const SizedBox(height: 8),
-                      
+
                       // Monthly Rent
                       if (membership.monthlyRent != null)
                         Row(
@@ -177,9 +221,9 @@ class MembershipCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                      
+
                       const SizedBox(height: 6),
-                      
+
                       // Rent Start Date
                       if (membership.rentStartDate != null)
                         Row(
@@ -199,9 +243,9 @@ class MembershipCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                      
+
                       const SizedBox(height: 6),
-                      
+
                       // Payment Due Day
                       if (membership.paymentDueDay != null)
                         Row(
@@ -226,8 +270,8 @@ class MembershipCard extends StatelessWidget {
                 ),
               ),
             ],
-            
-            // Actions (different for pending vs active)
+
+            // Actions (pending)
             if (isPending && (onApprove != null || onReject != null)) ...[
               const SizedBox(height: 16),
               Row(
@@ -260,8 +304,8 @@ class MembershipCard extends StatelessWidget {
                 ],
               ),
             ],
-            
-            // Actions (for active members)
+
+            // Actions (active)
             if (membership.isActive && (onMove != null || onRemove != null)) ...[
               const SizedBox(height: 16),
               Row(

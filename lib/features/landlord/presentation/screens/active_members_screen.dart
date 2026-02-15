@@ -39,12 +39,16 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
     ]);
   }
 
-  // Move member to different room
-  Future<void> _handleMove(String membershipId, String userEmail, String? currentRoomNumber) async {
+  // ✅ UPDATED: use displayName (name preferred, fallback email)
+  Future<void> _handleMove(
+    String membershipId,
+    String displayName,
+    String? currentRoomNumber,
+  ) async {
     // Get available rooms (not occupied)
     final roomsState = ref.read(roomsProvider);
     final availableRooms = roomsState.rooms; // TODO: Filter out occupied rooms (except current)
-    
+
     if (availableRooms.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,7 +66,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
       context: context,
       builder: (context) => RoomSelectorDialog(
         availableRooms: availableRooms,
-        title: 'Move $userEmail to Room',
+        title: 'Move $displayName to Room',
       ),
     );
 
@@ -83,10 +87,9 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                // ✅ Wrap Text in Expanded to prevent overflow
                 Expanded(
                   child: Text(
-                    '$userEmail moved to new room',
+                    '$displayName moved to new room',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -117,8 +120,8 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
     }
   }
 
-  // Remove member (kick out)
-  Future<void> _handleRemove(String membershipId, String userEmail) async {
+  // ✅ UPDATED: use displayName (name preferred, fallback email)
+  Future<void> _handleRemove(String membershipId, String displayName) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -127,7 +130,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to remove $userEmail from this space?'),
+            Text('Are you sure you want to remove $displayName from this space?'),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -180,10 +183,9 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
-                // ✅ Wrap Text in Expanded
                 Expanded(
                   child: Text(
-                    '$userEmail removed',
+                    '$displayName removed',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -235,16 +237,21 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                     itemCount: activeMembers.length,
                     itemBuilder: (context, index) {
                       final member = activeMembers[index];
+
+                      // ✅ prefer full name, fallback email
+                      final displayName =
+                          member.tenantFullName ?? member.userEmail ?? 'Tenant';
+
                       return MembershipCard(
                         membership: member,
                         onMove: () => _handleMove(
                           member.id,
-                          member.userEmail ?? 'User',
+                          displayName,
                           member.roomNumber,
                         ),
                         onRemove: () => _handleRemove(
                           member.id,
-                          member.userEmail ?? 'User',
+                          displayName,
                         ),
                       );
                     },

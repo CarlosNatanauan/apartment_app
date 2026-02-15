@@ -74,14 +74,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        obscureCurrent ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        obscureCurrent
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
-                      onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
+                      onPressed: () =>
+                          setState(() => obscureCurrent = !obscureCurrent),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // New Password
                 TextField(
                   controller: newPasswordController,
@@ -91,14 +94,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        obscureNew ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        obscureNew
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
                       onPressed: () => setState(() => obscureNew = !obscureNew),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Confirm Password
                 TextField(
                   controller: confirmPasswordController,
@@ -108,9 +113,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        obscureConfirm
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
-                      onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                      onPressed: () =>
+                          setState(() => obscureConfirm = !obscureConfirm),
                     ),
                   ),
                 ),
@@ -127,23 +135,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 // Validate
                 if (currentPasswordController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please enter current password')),
+                    const SnackBar(
+                      content: Text('Please enter current password'),
+                    ),
                   );
                   return;
                 }
                 if (newPasswordController.text.length < 6) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('New password must be at least 6 characters')),
+                    const SnackBar(
+                      content: Text(
+                        'New password must be at least 6 characters',
+                      ),
+                    ),
                   );
                   return;
                 }
-                if (newPasswordController.text != confirmPasswordController.text) {
+                if (newPasswordController.text !=
+                    confirmPasswordController.text) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Passwords do not match')),
                   );
                   return;
                 }
-                
+
                 // Return passwords
                 Navigator.pop(context, {
                   'current': currentPasswordController.text,
@@ -159,14 +174,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     if (result != null && mounted) {
       setState(() => _isChangingPassword = true);
-      
+
       try {
         // ✅ Call backend change password
-        await ref.read(authProvider.notifier).changePassword(
-          result['current']!,
-          result['new']!,
-        );
-        
+        await ref
+            .read(authProvider.notifier)
+            .changePassword(result['current']!, result['new']!);
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -179,10 +193,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         // Backend error (wrong password, etc.)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(e.message), backgroundColor: Colors.red),
           );
         }
       } catch (e) {
@@ -217,17 +228,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = authState.user;
 
     if (user == null) {
-      return const Scaffold(
-        body: Center(child: Text('No user data')),
-      );
+      return const Scaffold(body: Center(child: Text('No user data')));
     }
 
-    final roleColor = user.isLandlord ? AppTheme.landlordColor : AppTheme.tenantColor;
+    final roleColor = user.isLandlord
+        ? AppTheme.landlordColor
+        : AppTheme.tenantColor;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -235,9 +244,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: roleColor.withOpacity(0.1),
-              ),
+              decoration: BoxDecoration(color: roleColor.withOpacity(0.1)),
               child: Column(
                 children: [
                   // Avatar
@@ -251,18 +258,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Email
+                  // Full Name
+                  Text(
+                    user.fullName,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Email (secondary)
                   Text(
                     user.email,
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Role Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: roleColor,
                       borderRadius: BorderRadius.circular(20),
@@ -297,30 +320,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           const SizedBox(width: 12),
                           Text(
                             'Account Information',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                     const Divider(height: 1),
-                    
+
                     // User ID
                     _ProfileInfoTile(
-                      icon: Icons.badge_outlined,
-                      label: 'User ID',
-                      value: user.id,
-                      isMonospace: true,
+                      icon: Icons.person_outline,
+                      label: 'Full Name',
+                      value: user.fullName,
                     ),
-                    
+
                     // Email
                     _ProfileInfoTile(
                       icon: Icons.email_outlined,
                       label: 'Email',
                       value: user.email,
                     ),
-                    
+
                     // Role
                     _ProfileInfoTile(
                       icon: user.isLandlord ? Icons.business : Icons.person,
@@ -328,7 +349,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       value: user.role,
                       valueColor: roleColor,
                     ),
-                    
+
                     // Join Date
                     if (user.createdAt != null)
                       _ProfileInfoTile(
@@ -360,10 +381,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.chevron_right),
-                      onTap: _isChangingPassword ? null : _showChangePasswordDialog,
+                      onTap: _isChangingPassword
+                          ? null
+                          : _showChangePasswordDialog,
                     ),
                     const Divider(height: 1),
-                    
+
                     // Logout
                     ListTile(
                       leading: const Icon(Icons.logout, color: Colors.red),
@@ -371,7 +394,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         'Logout',
                         style: TextStyle(color: Colors.red),
                       ),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.red),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.red,
+                      ),
                       onTap: _handleLogout,
                     ),
                   ],
@@ -416,9 +442,9 @@ class _ProfileInfoTile extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 4),
                 Text(

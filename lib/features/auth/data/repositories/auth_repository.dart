@@ -50,19 +50,23 @@ class AuthRepository {
   }
 
   // Register
-  Future<User> register({
-    required String email,
-    required String password,
-    required String role,
-  }) async {
-    try {
-      final response = await _apiClient.post(
-        ApiEndpoints.register,
-        data: {
-          'email': email,
-          'password': password,
-          'role': role,
-        },
+Future<User> register({
+  required String firstName,   // 🆕 NEW
+  required String lastName,    // 🆕 NEW
+  required String email,
+  required String password,
+  required String role,
+}) async {
+  try {
+    final response = await _apiClient.post(
+      ApiEndpoints.register,
+      data: {
+        'firstName': firstName,   // 🆕 NEW
+        'lastName': lastName,     // 🆕 NEW
+        'email': email,
+        'password': password,
+        'role': role,
+      },
         fromJson: (data) => RegisterResponse.fromJson(data),
       );
 

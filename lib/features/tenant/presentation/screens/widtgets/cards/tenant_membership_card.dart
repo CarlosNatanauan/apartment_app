@@ -18,16 +18,32 @@ class TenantMembershipCard extends StatelessWidget {
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
@@ -35,7 +51,15 @@ class TenantMembershipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPending = membership.isPending;
     final isActive = membership.isActive;
-    
+
+    // ✅ landlord info (name + email)
+    final landlordName = membership.landlordFullName;
+    final landlordEmail = membership.landlordEmail;
+
+    final hasLandlord =
+        (landlordName != null && landlordName.trim().isNotEmpty) ||
+        (landlordEmail != null && landlordEmail.trim().isNotEmpty);
+
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -61,7 +85,6 @@ class TenantMembershipCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,6 +95,8 @@ class TenantMembershipCard extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (membership.createdAt != null) ...[
                           const SizedBox(height: 2),
@@ -81,17 +106,21 @@ class TenantMembershipCard extends StatelessWidget {
                               fontSize: 12,
                               color: AppTheme.textHint,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],
                     ),
                   ),
-                  
+
                   // Status Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppTheme.getStatusColor(membership.status).withOpacity(0.1),
+                      color: AppTheme.getStatusColor(membership.status)
+                          .withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -105,7 +134,7 @@ class TenantMembershipCard extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               // Room Info & Rent Details (for active members)
               if (isActive) ...[
                 const SizedBox(height: 12),
@@ -131,23 +160,27 @@ class TenantMembershipCard extends StatelessWidget {
                               color: AppTheme.tenantColor,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Room ${membership.roomNumber}',
-                              style: const TextStyle(
-                                color: AppTheme.tenantColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Text(
+                                'Room ${membership.roomNumber}',
+                                style: const TextStyle(
+                                  color: AppTheme.tenantColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                      
+
                       // Rent Information
                       if (membership.hasRentInfo) ...[
                         const SizedBox(height: 8),
                         const Divider(height: 1),
                         const SizedBox(height: 8),
-                        
+
                         // Monthly Rent
                         Row(
                           children: [
@@ -157,19 +190,23 @@ class TenantMembershipCard extends StatelessWidget {
                               color: AppTheme.textSecondary,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              '${CurrencyFormatter.formatCents(membership.monthlyRent!)}/month',
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                            Expanded(
+                              child: Text(
+                                '${CurrencyFormatter.formatCents(membership.monthlyRent!)}/month',
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 6),
-                        
+
                         // Rent Start Date
                         Row(
                           children: [
@@ -179,18 +216,22 @@ class TenantMembershipCard extends StatelessWidget {
                               color: AppTheme.textSecondary,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Started: ${DateFormatter.formatDate(membership.rentStartDate!)}',
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 13,
+                            Expanded(
+                              child: Text(
+                                'Started: ${DateFormatter.formatDate(membership.rentStartDate!)}',
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 6),
-                        
+
                         // Payment Due Day
                         Row(
                           children: [
@@ -200,23 +241,28 @@ class TenantMembershipCard extends StatelessWidget {
                               color: AppTheme.textSecondary,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              'Due: ${membership.paymentDueDay}${_getDaySuffix(membership.paymentDueDay!)} of each month',
-                              style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 13,
+                            Expanded(
+                              child: Text(
+                                'Due: ${membership.paymentDueDay}${_getDaySuffix(membership.paymentDueDay!)} of each month',
+                                style: const TextStyle(
+                                  color: AppTheme.textSecondary,
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
                       ],
-                      
-                      // Landlord Info
-                      if (membership.landlordEmail != null) ...[
+
+                      // ✅ Landlord Info (name + email)
+                      if (hasLandlord) ...[
                         const SizedBox(height: 8),
                         const Divider(height: 1),
                         const SizedBox(height: 8),
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Icon(
                               Icons.person_outline,
@@ -225,13 +271,33 @@ class TenantMembershipCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                'Landlord: ${membership.landlordEmail}',
-                                style: const TextStyle(
-                                  color: AppTheme.textSecondary,
-                                  fontSize: 13,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (landlordName != null &&
+                                      landlordName.trim().isNotEmpty)
+                                    Text(
+                                      'Landlord: $landlordName',
+                                      style: const TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  if (landlordEmail != null &&
+                                      landlordEmail.trim().isNotEmpty)
+                                    Text(
+                                      landlordEmail,
+                                      style: const TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontSize: 12,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
                               ),
                             ),
                           ],
@@ -241,7 +307,7 @@ class TenantMembershipCard extends StatelessWidget {
                   ),
                 ),
               ],
-              
+
               // Pending Message
               if (isPending) ...[
                 const SizedBox(height: 12),
@@ -252,6 +318,7 @@ class TenantMembershipCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(
                         Icons.pending_outlined,
@@ -271,15 +338,33 @@ class TenantMembershipCard extends StatelessWidget {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            if (membership.landlordEmail != null) ...[
+                            if (hasLandlord) ...[
                               const SizedBox(height: 4),
-                              Text(
-                                'Landlord: ${membership.landlordEmail}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppTheme.warningColor.withOpacity(0.8),
+                              if (landlordName != null &&
+                                  landlordName.trim().isNotEmpty)
+                                Text(
+                                  'Landlord: $landlordName',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.warningColor
+                                        .withOpacity(0.85),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
+                              if (landlordEmail != null &&
+                                  landlordEmail.trim().isNotEmpty)
+                                Text(
+                                  landlordEmail,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppTheme.warningColor
+                                        .withOpacity(0.8),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                             ],
                           ],
                         ),
@@ -288,7 +373,7 @@ class TenantMembershipCard extends StatelessWidget {
                   ),
                 ),
               ],
-              
+
               // Approved timestamp (for active)
               if (isActive && membership.approvedAt != null) ...[
                 const SizedBox(height: 8),
@@ -300,7 +385,7 @@ class TenantMembershipCard extends StatelessWidget {
                   ),
                 ),
               ],
-              
+
               // Leave button (for active)
               if (isActive && onLeave != null) ...[
                 const SizedBox(height: 16),

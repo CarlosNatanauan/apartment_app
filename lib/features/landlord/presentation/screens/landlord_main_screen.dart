@@ -16,7 +16,6 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
   final List<Widget> _screens = [
     const SpacesListScreen(),
     const _DashboardPlaceholder(),
-    const _ProfilePlaceholder(),
   ];
 
   @override
@@ -51,11 +50,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
             activeIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+
         ],
       ),
     );
@@ -112,16 +107,5 @@ class _DashboardPlaceholder extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-// Profile Placeholder (actual profile is separate route)
-class _ProfilePlaceholder extends StatelessWidget {
-  const _ProfilePlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    // This is just a placeholder since profile navigates to separate screen
-    return const SizedBox.shrink();
   }
 }

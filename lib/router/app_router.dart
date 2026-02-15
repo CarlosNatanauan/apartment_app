@@ -1,8 +1,12 @@
 import 'package:apartment_app/features/auth/presentation/screens/home/home_screen.dart';
 import 'package:apartment_app/features/auth/presentation/screens/home/profile_screen.dart';
-import 'package:apartment_app/features/landlord/presentation/screens/landlord_main_screen.dart'; // ✅ NEW
-import 'package:apartment_app/features/tenant/presentation/screens/tenant_main_screen.dart'; // ✅ NEW
-import 'package:apartment_app/features/tenant/presentation/screens/join_space_screen.dart'; // ✅ NEW
+import 'package:apartment_app/features/landlord/presentation/screens/landlord_main_screen.dart';
+import 'package:apartment_app/features/landlord/presentation/screens/space_maintenance_screen.dart'; // 🆕 ADD
+import 'package:apartment_app/features/landlord/presentation/screens/landlord_maintenance_details_screen.dart'; // 🆕 ADD
+import 'package:apartment_app/features/tenant/presentation/screens/create_maintenance_screen.dart';
+import 'package:apartment_app/features/tenant/presentation/screens/maintenance_details_screen.dart';
+import 'package:apartment_app/features/tenant/presentation/screens/tenant_main_screen.dart';
+import 'package:apartment_app/features/tenant/presentation/screens/join_space_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,13 +29,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isInitialized = authState.isInitialized;
       final isLoading = authState.isLoading;
       final currentPath = state.matchedLocation;
-      final userRole = authState.user?.role; // ✅ NEW: Get user role
+      final userRole = authState.user?.role;
 
       print('🧭 Router redirect check:');
       print('   Path: $currentPath');
       print('   Initialized: $isInitialized');
       print('   Authenticated: $isAuthenticated');
-      print('   Role: $userRole'); // ✅ NEW
+      print('   Role: $userRole');
       print('   Loading: $isLoading');
 
       // Don't redirect if currently loading
@@ -46,7 +50,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/';
       }
 
-      // ✅ UPDATED: After initialized, redirect from splash based on role
+      // After initialized, redirect from splash based on role
       if (isInitialized && currentPath == '/') {
         if (isAuthenticated) {
           if (userRole == 'LANDLORD') {
@@ -65,7 +69,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       }
 
-      // ✅ UPDATED: If authenticated and on auth pages, redirect based on role
+      // If authenticated and on auth pages, redirect based on role
       if (isAuthenticated && currentPath.startsWith('/auth')) {
         if (userRole == 'LANDLORD') {
           print('   → Redirecting to /landlord (already authenticated as LANDLORD)');
@@ -80,8 +84,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // If not authenticated and trying to access protected pages, go to login
-      if (!isAuthenticated && 
-          !currentPath.startsWith('/auth') && 
+      if (!isAuthenticated &&
+          !currentPath.startsWith('/auth') &&
           currentPath != '/') {
         print('   → Redirecting to login (protected page)');
         return '/auth/login';
@@ -92,10 +96,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     refreshListenable: GoRouterRefreshStream(ref),
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashScreen(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(
         path: '/auth/login',
         builder: (context, state) => LoginScreen(key: _loginKey),
@@ -104,20 +105,48 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/register',
         builder: (context, state) => RegisterScreen(key: _registerKey),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
       ),
-      // ✅ NEW: Landlord routes
+      
+      // ===== LANDLORD ROUTES =====
       GoRoute(
         path: '/landlord',
         builder: (context, state) => const LandlordMainScreen(),
       ),
-      // ✅ NEW: Tenant routes
+      // 🆕 NEW: Landlord Maintenance Routes
+      GoRoute(
+        path: '/landlord/space/:spaceId/maintenance',
+        builder: (context, state) {
+          final spaceId = state.pathParameters['spaceId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final spaceName = extra?['spaceName'] as String?;
+          
+          return SpaceMaintenanceScreen(
+            spaceId: spaceId,
+            spaceName: spaceName ?? 'Space',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/landlord/space/:spaceId/maintenance/:requestId',
+        builder: (context, state) {
+          final spaceId = state.pathParameters['spaceId']!;
+          final requestId = state.pathParameters['requestId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final spaceName = extra?['spaceName'] as String?;
+          
+          return LandlordMaintenanceDetailsScreen(
+            spaceId: spaceId,
+            requestId: requestId,
+            spaceName: spaceName,
+          );
+        },
+      ),
+      
+      // ===== TENANT ROUTES =====
       GoRoute(
         path: '/tenant',
         builder: (context, state) => const TenantMainScreen(),
@@ -126,6 +155,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/tenant/join-space',
         builder: (context, state) => const JoinSpaceScreen(),
       ),
+      GoRoute(
+        path: '/tenant/maintenance/create',
+        builder: (context, state) => const CreateMaintenanceScreen(),
+      ),
+      GoRoute(
+        path: '/tenant/maintenance/details/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return MaintenanceDetailsScreen(requestId: id);
+        },
+      ),
     ],
   );
 });
@@ -133,16 +173,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 // Helper class to make router reactive to provider changes
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(this.ref) {
-    ref.listen<AuthState>(
-      authProvider,
-      (previous, next) {
-        // Only notify if auth status changed (not loading state)
-        if (previous?.isAuthenticated != next.isAuthenticated ||
-            previous?.isInitialized != next.isInitialized) {
-          notifyListeners();
-        }
-      },
-    );
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      // Only notify if auth status changed (not loading state)
+      if (previous?.isAuthenticated != next.isAuthenticated ||
+          previous?.isInitialized != next.isInitialized) {
+        notifyListeners();
+      }
+    });
   }
 
   final Ref ref;

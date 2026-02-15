@@ -30,4 +30,13 @@ class ApiEndpoints {
   static String moveMembership(String id) => '/memberships/$id/move';
   static String leaveMembership(String id) => '/memberships/$id/leave';
   static String removeMembership(String id) => '/memberships/$id/remove';
+
+  // 🆕 NEW: Maintenance
+  static const String createMaintenance = '/maintenance';
+  static const String myMaintenance = '/maintenance/my';
+  static String maintenanceDetails(String id) => '/maintenance/$id';
+  static String addMaintenanceComment(String id) => '/maintenance/$id/comments';
+  static String cancelMaintenance(String id) => '/maintenance/$id/cancel';
+  static String spaceMaintenance(String spaceId) => '/spaces/$spaceId/maintenance';
+  static String updateMaintenanceStatus(String id) => '/maintenance/$id/status';
 }

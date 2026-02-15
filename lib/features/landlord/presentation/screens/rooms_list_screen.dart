@@ -1,3 +1,4 @@
+// rooms_list_screen.dart ✅ LIST (no grid overflows), same logic + dialogs
 import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/rooms_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/room_card.dart';
@@ -10,10 +11,7 @@ import '../../data/models/space_model.dart';
 class RoomsListScreen extends ConsumerStatefulWidget {
   final Space space;
 
-  const RoomsListScreen({
-    super.key,
-    required this.space,
-  });
+  const RoomsListScreen({super.key, required this.space});
 
   @override
   ConsumerState<RoomsListScreen> createState() => _RoomsListScreenState();
@@ -25,32 +23,27 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
   @override
   void initState() {
     super.initState();
-    // Load rooms when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(roomsProvider.notifier).loadRooms(widget.space.id);
     });
   }
 
-  // Pull-to-refresh handler
   Future<void> _handleRefresh() async {
     await ref.read(roomsProvider.notifier).loadRooms(widget.space.id);
   }
 
-  // Show create room dialog with tabs for single/bulk
   Future<void> _showCreateRoomDialog() async {
     await showDialog(
       context: context,
       builder: (context) => _CreateRoomDialog(
         spaceId: widget.space.id,
         onCreated: () {
-          // Refresh list after creation
           ref.read(roomsProvider.notifier).loadRooms(widget.space.id);
         },
       ),
     );
   }
 
-  // Show edit room dialog
   Future<void> _showEditRoomDialog(String roomId, String currentNumber) async {
     final numberController = TextEditingController(text: currentNumber);
 
@@ -58,21 +51,20 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Room Number'),
-content: TextField(
-  controller: numberController,
-  autofocus: true,
-  keyboardType: TextInputType.number,
-  inputFormatters: [
-    FilteringTextInputFormatter.digitsOnly, // ✅ only 0-9
-    LengthLimitingTextInputFormatter(6),
-  ],
-  decoration: const InputDecoration(
-    labelText: 'Room Number',
-    hintText: 'e.g., 101',
-    prefixIcon: Icon(Icons.door_front_door_outlined),
-  ),
-),
-
+        content: TextField(
+          controller: numberController,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(6),
+          ],
+          decoration: const InputDecoration(
+            labelText: 'Room Number',
+            hintText: 'e.g., 101',
+            prefixIcon: Icon(Icons.door_front_door_outlined),
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -80,24 +72,22 @@ content: TextField(
           ),
           ElevatedButton(
             onPressed: () {
-final number = numberController.text.trim();
+              final number = numberController.text.trim();
 
-if (number.isEmpty) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Please enter a room number')),
-  );
-  return;
-}
+              if (number.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a room number')),
+                );
+                return;
+              }
 
-// extra safety (should already be digits-only)
-if (!RegExp(r'^\d+$').hasMatch(number)) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Room number must be numeric')),
-  );
-  return;
-}
-Navigator.pop(context, number);
-
+              if (!RegExp(r'^\d+$').hasMatch(number)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Room number must be numeric')),
+                );
+                return;
+              }
+              Navigator.pop(context, number);
             },
             child: const Text('Save'),
           ),
@@ -110,11 +100,9 @@ Navigator.pop(context, number);
 
     if (result != null && result != currentNumber && mounted) {
       try {
-        await ref.read(roomsProvider.notifier).updateRoomNumber(
-              widget.space.id,
-              roomId,
-              result,
-            );
+        await ref
+            .read(roomsProvider.notifier)
+            .updateRoomNumber(widget.space.id, roomId, result);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +140,6 @@ Navigator.pop(context, number);
     }
   }
 
-  // Show delete confirmation
   Future<void> _showDeleteConfirmation(String roomId, String roomNumber) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -169,11 +156,17 @@ Navigator.pop(context, number);
               decoration: BoxDecoration(
                 color: AppTheme.warningColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.warningColor.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppTheme.warningColor.withOpacity(0.3),
+                ),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppTheme.warningColor, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: AppTheme.warningColor,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -205,10 +198,9 @@ Navigator.pop(context, number);
 
     if (confirmed == true && mounted) {
       try {
-        await ref.read(roomsProvider.notifier).deleteRoom(
-              widget.space.id,
-              roomId,
-            );
+        await ref
+            .read(roomsProvider.notifier)
+            .deleteRoom(widget.space.id, roomId);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -252,33 +244,27 @@ Navigator.pop(context, number);
     final rooms = roomsState.rooms;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Rooms - ${widget.space.name}'),
-      ),
+      appBar: AppBar(title: Text('Rooms - ${widget.space.name}')),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: roomsState.isLoading && rooms.isEmpty
             ? const Center(child: CircularProgressIndicator())
             : rooms.isEmpty
-                ? _buildEmptyState()
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: rooms.length,
-                    itemBuilder: (context, index) {
-                      final room = rooms[index];
-                      return RoomCard(
-                        room: room,
-                        onEdit: () => _showEditRoomDialog(room.id, room.roomNumber),
-                        onDelete: () => _showDeleteConfirmation(room.id, room.roomNumber),
-                      );
-                    },
-                  ),
+            ? _buildEmptyState()
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 16),
+                itemCount: rooms.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 0),
+                itemBuilder: (context, index) {
+                  final room = rooms[index];
+                  return RoomCard(
+                    room: room,
+                    onEdit: () => _showEditRoomDialog(room.id, room.roomNumber),
+                    onDelete: () =>
+                        _showDeleteConfirmation(room.id, room.roomNumber),
+                  );
+                },
+              ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _isCreating ? null : _showCreateRoomDialog,
@@ -343,7 +329,9 @@ Navigator.pop(context, number);
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
                           : const Icon(Icons.add),
@@ -360,15 +348,12 @@ Navigator.pop(context, number);
   }
 }
 
-// Create Room Dialog with Tabs for Single/Bulk
+// ✅ unchanged dialog (same theme + logic)
 class _CreateRoomDialog extends ConsumerStatefulWidget {
   final String spaceId;
   final VoidCallback onCreated;
 
-  const _CreateRoomDialog({
-    required this.spaceId,
-    required this.onCreated,
-  });
+  const _CreateRoomDialog({required this.spaceId, required this.onCreated});
 
   @override
   ConsumerState<_CreateRoomDialog> createState() => _CreateRoomDialogState();
@@ -399,7 +384,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
 
   Future<void> _createSingleRoom() async {
     final roomNumber = _singleController.text.trim();
-    
+
     if (roomNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a room number')),
@@ -410,10 +395,9 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
     setState(() => _isCreating = true);
 
     try {
-      await ref.read(roomsProvider.notifier).createRoom(
-            widget.spaceId,
-            roomNumber,
-          );
+      await ref
+          .read(roomsProvider.notifier)
+          .createRoom(widget.spaceId, roomNumber);
 
       if (mounted) {
         Navigator.pop(context);
@@ -444,9 +428,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isCreating = false);
-      }
+      if (mounted) setState(() => _isCreating = false);
     }
   }
 
@@ -479,13 +461,12 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
     }
 
     if (end - start > 50) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum 50 rooms at once')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Maximum 50 rooms at once')));
       return;
     }
 
-    // Generate room numbers
     final roomNumbers = List.generate(
       end - start + 1,
       (index) => (start + index).toString(),
@@ -494,10 +475,9 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
     setState(() => _isCreating = true);
 
     try {
-      await ref.read(roomsProvider.notifier).createRooms(
-            widget.spaceId,
-            roomNumbers,
-          );
+      await ref
+          .read(roomsProvider.notifier)
+          .createRooms(widget.spaceId, roomNumbers);
 
       if (mounted) {
         Navigator.pop(context);
@@ -528,9 +508,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isCreating = false);
-      }
+      if (mounted) setState(() => _isCreating = false);
     }
   }
 
@@ -543,7 +521,6 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Tabs
             TabBar(
               controller: _tabController,
               labelColor: AppTheme.landlordColor,
@@ -554,61 +531,61 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
                 Tab(text: 'Bulk'),
               ],
             ),
-            
             const SizedBox(height: 16),
-            
-            // Tab Content
             SizedBox(
               height: 150,
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  // Single Room Tab
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-TextField(
-  controller: _singleController,
-  autofocus: true,
-  keyboardType: TextInputType.number,
-  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6),],
-  decoration: const InputDecoration(
-    labelText: 'Room Number',
-    hintText: 'e.g., 101',
-    prefixIcon: Icon(Icons.door_front_door_outlined),
-  ),
-),
-
+                      TextField(
+                        controller: _singleController,
+                        autofocus: true,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Room Number',
+                          hintText: 'e.g., 101',
+                          prefixIcon: Icon(Icons.door_front_door_outlined),
+                        ),
+                      ),
                     ],
                   ),
-                  
-                  // Bulk Create Tab
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-TextField(
-  controller: _startController,
-  keyboardType: TextInputType.number,
-  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6),],
-  decoration: const InputDecoration(
-    labelText: 'Start Number',
-    hintText: 'e.g., 101',
-    prefixIcon: Icon(Icons.first_page),
-  ),
-),
-
+                      TextField(
+                        controller: _startController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'Start Number',
+                          hintText: 'e.g., 101',
+                          prefixIcon: Icon(Icons.first_page),
+                        ),
+                      ),
                       const SizedBox(height: 12),
-TextField(
-  controller: _endController,
-  keyboardType: TextInputType.number,
-  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6),],
-  decoration: const InputDecoration(
-    labelText: 'End Number',
-    hintText: 'e.g., 110',
-    prefixIcon: Icon(Icons.last_page),
-  ),
-),
-
+                      TextField(
+                        controller: _endController,
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(6),
+                        ],
+                        decoration: const InputDecoration(
+                          labelText: 'End Number',
+                          hintText: 'e.g., 110',
+                          prefixIcon: Icon(Icons.last_page),
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'Will create rooms from start to end (max 50)',
