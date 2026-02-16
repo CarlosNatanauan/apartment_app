@@ -125,24 +125,28 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
   }
 
   // Create new request
-  Future<void> createRequest({
-    required MaintenanceCategory category,
-    String? customCategory,
-    required String title,
-    required String description,
-    String? imageData,
-  }) async {
-    print('🛠️ [MAINTENANCE] Creating request: $title');
-    state = state.copyWith(isSubmitting: true, clearError: true);
+Future<void> createRequest({
+  required String spaceId,     // 🆕 NEW
+  required String roomId,      // 🆕 NEW
+  required MaintenanceCategory category,
+  String? customCategory,
+  required String title,
+  required String description,
+  String? imageData,
+}) async {
+  print('🛠️ [MAINTENANCE] Creating request: $title');
+  state = state.copyWith(isSubmitting: true, clearError: true);
 
-    try {
-      final request = await _repository.createRequest(
-        category: category,
-        customCategory: customCategory,
-        title: title,
-        description: description,
-        imageData: imageData,
-      );
+  try {
+    final request = await _repository.createRequest(
+      spaceId: spaceId,       // 🆕 NEW
+      roomId: roomId,         // 🆕 NEW
+      category: category,
+      customCategory: customCategory,
+      title: title,
+      description: description,
+      imageData: imageData,
+    );
       print('🛠️ [MAINTENANCE] Request created: ${request.id}');
 
       // Add to list

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/tenant/data/models/maintenance_request_model.dart';
 import 'package:apartment_app/features/tenant/presentation/provider/maintenance_provider.dart';
+import 'package:apartment_app/features/tenant/presentation/provider/tenant_memberships_provider.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,8 +28,18 @@ class _CreateMaintenanceScreenState
   final _imagePicker = ImagePicker();
 
   MaintenanceCategory _selectedCategory = MaintenanceCategory.plumbing;
+  String? _selectedMembershipId; // 🆕 NEW: Track selected membership
   XFile? _selectedImage;
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 🆕 Load memberships on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(tenantMembershipsProvider.notifier).loadMemberships();
+    });
+  }
 
   @override
   void dispose() {
@@ -82,10 +93,33 @@ class _CreateMaintenanceScreenState
     setState(() => _isSubmitting = true);
 
     try {
+      // 🆕 Get selected membership (or first one if only one exists)
+      final membershipsState = ref.read(tenantMembershipsProvider);
+      final activeMemberships = membershipsState.activeMemberships;
+
+      if (activeMemberships.isEmpty) {
+        throw Exception('No active memberships found');
+      }
+
+      // Get the selected membership
+      final selectedMembership = activeMemberships.length == 1
+          ? activeMemberships.first
+          : activeMemberships.firstWhere(
+              (m) => m.id == _selectedMembershipId,
+              orElse: () => throw Exception('Please select a space and room'),
+            );
+
+      // Validate spaceId and roomId exist
+      if (selectedMembership.spaceId == null || selectedMembership.roomId == null) {
+        throw Exception('Selected membership is missing space or room information');
+      }
+
       // Convert image if present
       final imageData = await _convertImageToBase64();
 
       await ref.read(maintenanceProvider.notifier).createRequest(
+            spaceId: selectedMembership.spaceId!, // 🆕 Pass spaceId
+            roomId: selectedMembership.roomId!, // 🆕 Pass roomId
             category: _selectedCategory,
             customCategory: _selectedCategory == MaintenanceCategory.other
                 ? _customCategoryController.text.trim()
@@ -140,6 +174,63 @@ class _CreateMaintenanceScreenState
 
   @override
   Widget build(BuildContext context) {
+    // 🆕 Watch memberships state
+    final membershipsState = ref.watch(tenantMembershipsProvider);
+    final activeMemberships = membershipsState.activeMemberships;
+    final isLoadingMemberships = membershipsState.isLoading;
+
+    // 🆕 Show loading while memberships are being fetched
+    if (isLoadingMemberships && activeMemberships.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('New Maintenance Request'),
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // 🆕 Show error if no active memberships
+    if (activeMemberships.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('New Maintenance Request'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.warning_outlined,
+                  size: 64,
+                  color: AppTheme.warningColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No Active Memberships',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'You need to join a space before creating maintenance requests.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => context.pop(),
+                  child: const Text('Go Back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Maintenance Request'),
@@ -149,6 +240,88 @@ class _CreateMaintenanceScreenState
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // 🆕 NEW: Space/Room Selector (ONLY if multiple active memberships)
+            if (activeMemberships.length > 1) ...[
+              Text(
+                'Select Space & Room',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedMembershipId,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.apartment),
+                  hintText: 'Select space and room',
+                ),
+                items: activeMemberships.map((membership) {
+                  return DropdownMenuItem(
+                    value: membership.id,
+                    child: Text(
+                      '${membership.spaceName ?? 'Unknown'} - Room ${membership.roomNumber ?? 'N/A'}',
+                    ),
+                  );
+                }).toList(),
+                onChanged: _isSubmitting
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _selectedMembershipId = value;
+                        });
+                      },
+                validator: (value) {
+                  if (activeMemberships.length > 1 && value == null) {
+                    return 'Please select a space and room';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+            ],
+
+            // 🆕 Show selected space info if only one membership
+            if (activeMemberships.length == 1) ...[
+              Card(
+                color: AppTheme.tenantColor.withOpacity(0.1),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.apartment,
+                        color: AppTheme.tenantColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Reporting for:',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            Text(
+                              '${activeMemberships.first.spaceName ?? 'Unknown'} - Room ${activeMemberships.first.roomNumber ?? 'N/A'}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // Category Dropdown
             Text(
               'Category',
