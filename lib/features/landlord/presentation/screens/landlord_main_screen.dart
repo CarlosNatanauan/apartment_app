@@ -1,3 +1,4 @@
+import 'package:apartment_app/features/landlord/presentation/screens/all_spaces_maintenance_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/spaces_list_screen.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
 
   final List<Widget> _screens = [
     const SpacesListScreen(),
+    const AllSpacesMaintenanceScreen(),  // 🆕 NEW!
     const _DashboardPlaceholder(),
   ];
 
@@ -28,14 +30,9 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index == 2) {
-            // Navigate to profile screen
-            context.push('/profile');
-          } else {
-            setState(() {
-              _selectedIndex = index;
-            });
-          }
+          setState(() {
+            _selectedIndex = index;
+          });
         },
         selectedItemColor: AppTheme.landlordColor,
         unselectedItemColor: AppTheme.textHint,
@@ -45,12 +42,17 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
             activeIcon: Icon(Icons.business),
             label: 'Spaces',
           ),
+          // 🆕 NEW: Maintenance Tab
+          BottomNavigationBarItem(
+            icon: Icon(Icons.build_circle_outlined),
+            activeIcon: Icon(Icons.build_circle),
+            label: 'Maintenance',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined),
             activeIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-
         ],
       ),
     );

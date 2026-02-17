@@ -145,6 +145,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+
+GoRoute(
+  path: '/landlord/maintenance/:spaceId/:requestId',
+  builder: (context, state) {
+    final spaceId = state.pathParameters['spaceId']!;
+    final requestId = state.pathParameters['requestId']!;
+    final extra = state.extra as Map<String, dynamic>?;
+    final spaceName = extra?['spaceName'] as String?;
+    
+    return LandlordMaintenanceDetailsScreen(
+      spaceId: spaceId,
+      requestId: requestId,
+      spaceName: spaceName,
+    );
+  },
+),
       
       // ===== TENANT ROUTES =====
       GoRoute(

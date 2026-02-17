@@ -21,8 +21,7 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
-    // Load requests on init
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(maintenanceProvider.notifier).loadRequests();
     });
@@ -113,40 +112,55 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
     final allRequests = state.requests;
     final pendingRequests = state.pendingRequests;
     final inProgressRequests = state.inProgressRequests;
-    final completedRequests = state.completedRequests;
+    final completedRequests = state.completedRequests; // kept
     final isLoading = state.isLoading;
 
     return Scaffold(
+      // ✅ AppBar now matches "My Spaces"
       appBar: AppBar(
         title: const Text('Maintenance'),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.tenantColor,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.tenantColor,
-          tabs: [
-            Tab(
-              text: 'All (${allRequests.length})',
-            ),
-            Tab(
-              text: 'Pending (${pendingRequests.length})',
-            ),
-            Tab(
-              text: 'Active (${inProgressRequests.length})',
-            ),
-          ],
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: () => context.push('/profile'),
+          ),
+        ],
       ),
-      body: isLoading && allRequests.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
+
+      body: Column(
+        children: [
+          // ✅ Tab bar moved here (so AppBar height matches My Spaces)
+          Material(
+            // keeps correct ink effects + nice separation
+            child: TabBar(
               controller: _tabController,
-              children: [
-                _buildRequestsList(allRequests, 'all'),
-                _buildRequestsList(pendingRequests, 'pending'),
-                _buildRequestsList(inProgressRequests, 'active'),
+              labelColor: AppTheme.tenantColor,
+              unselectedLabelColor: AppTheme.textSecondary,
+              indicatorColor: AppTheme.tenantColor,
+              tabs: [
+                Tab(text: 'All (${allRequests.length})'),
+                Tab(text: 'Pending (${pendingRequests.length})'),
+                Tab(text: 'Active (${inProgressRequests.length})'),
               ],
             ),
+          ),
+
+          // ✅ content
+          Expanded(
+            child: isLoading && allRequests.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildRequestsList(allRequests, 'all'),
+                      _buildRequestsList(pendingRequests, 'pending'),
+                      _buildRequestsList(inProgressRequests, 'active'),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/tenant/maintenance/create'),
         icon: const Icon(Icons.add),
@@ -200,8 +214,7 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
         break;
       default:
         title = 'No Maintenance Requests';
-        message =
-            'Create a request to report any issues with your apartment.';
+        message = 'Create a request to report any issues with your apartment.';
         icon = Icons.build_circle_outlined;
     }
 
@@ -244,8 +257,7 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
                     if (type == 'all') ...[
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: () =>
-                            context.push('/tenant/maintenance/create'),
+                        onPressed: () => context.push('/tenant/maintenance/create'),
                         icon: const Icon(Icons.add),
                         label: const Text('Create First Request'),
                         style: ElevatedButton.styleFrom(

@@ -7,6 +7,49 @@ class LandlordMaintenanceRepository {
 
   LandlordMaintenanceRepository(this._apiClient);
 
+  // 🆕 NEW: Get all maintenance requests from all spaces owned by landlord
+  Future<List<MaintenanceRequest>> getAllSpacesRequests({
+    String? status,
+    int limit = 100, // Higher limit for all spaces
+    String? cursor,
+  }) async {
+    try {
+      // We'll need to fetch all spaces first, then fetch maintenance for each
+      // Or better: create a new backend endpoint /maintenance/all
+      // For now, let's use a simpler approach: fetch from each space and combine
+      
+      final queryParams = {
+        'limit': limit.toString(),
+        if (status != null) 'status': status,
+        if (cursor != null) 'cursor': cursor,
+      };
+
+      // ✅ FIX: Changed endpoint to avoid route conflict
+      final response = await _apiClient.get(
+        '/landlord/maintenance/all',
+        queryParameters: queryParams,
+        fromJson: (data) {
+          if (data is List) {
+            return data
+                .map((json) => MaintenanceRequest.fromJson(json as Map<String, dynamic>))
+                .toList();
+          }
+          return <MaintenanceRequest>[];
+        },
+      );
+
+      if (!response.ok || response.data == null) {
+        throw Exception('Failed to load maintenance requests');
+      }
+
+      return response.data!;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to load all maintenance requests: ${e.toString()}');
+    }
+  }
+
   // Get all maintenance requests for a space
   Future<List<MaintenanceRequest>> getSpaceRequests({
     required String spaceId,
