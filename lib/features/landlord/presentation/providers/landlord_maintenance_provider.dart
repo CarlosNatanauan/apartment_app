@@ -68,6 +68,34 @@ class LandlordMaintenanceNotifier extends Notifier<LandlordMaintenanceState> {
     return const LandlordMaintenanceState();
   }
 
+  // 🆕 NEW: Load all requests from all landlord's spaces
+  Future<void> loadAllSpacesRequests({String? status}) async {
+    print('🛠️ [LANDLORD MAINTENANCE] Loading requests from ALL spaces');
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final requests = await _repository.getAllSpacesRequests(status: status);
+      print('🛠️ [LANDLORD MAINTENANCE] Loaded ${requests.length} requests from all spaces');
+
+      state = state.copyWith(
+        requests: requests,
+        isLoading: false,
+      );
+    } on ApiException catch (e) {
+      print('❌ [LANDLORD MAINTENANCE] ApiException: ${e.message}');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+    } catch (e) {
+      print('❌ [LANDLORD MAINTENANCE] Exception: $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to load requests',
+      );
+    }
+  }
+
   // Load all requests for a space
   Future<void> loadSpaceRequests(String spaceId, {String? status}) async {
     print('🛠️ [LANDLORD MAINTENANCE] Loading requests for space: $spaceId');
