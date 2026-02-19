@@ -13,14 +13,11 @@ class TenantMembershipsRepository {
       final response = await _apiClient.get(
         '/memberships/me',
         fromJson: (data) {
-          // Handle both cases: data is array OR data is wrapped in "data" field
           List<dynamic> items;
 
           if (data is Map && data.containsKey('data')) {
-            // Backend wrapped in { ok: true, data: [...] }
             items = data['data'] as List? ?? [];
           } else if (data is List) {
-            // Direct array
             items = data;
           } else {
             print('🔴 Unexpected data format: ${data.runtimeType}');
@@ -80,6 +77,41 @@ class TenantMembershipsRepository {
       rethrow;
     } catch (e) {
       throw Exception('Failed to leave space: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: Request to join another room in a space
+  Future<RoomLease> requestRoomLease({
+    required String membershipId,
+    required String roomId,
+  }) async {
+    try {
+      print('🟢 Requesting room lease: membership=$membershipId, room=$roomId');
+      
+      final response = await _apiClient.post(
+        '/memberships/$membershipId/room-leases',
+        data: {'roomId': roomId},
+        fromJson: (data) {
+          print('🟢 Room lease request response: $data');
+          // Backend returns: { ok: true, data: { leaseId, status, roomId } }
+          if (data is Map && data.containsKey('data')) {
+            return RoomLease.fromJson(data['data'] as Map<String, dynamic>);
+          }
+          return RoomLease.fromJson(data as Map<String, dynamic>);
+        },
+      );
+
+      if (!response.ok || response.data == null) {
+        throw Exception('Failed to request room lease');
+      }
+
+      print('🟢 Room lease created: ${response.data!.leaseId}');
+      return response.data!;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      print('🔴 Error requesting room lease: $e');
+      throw Exception('Failed to request room: ${e.toString()}');
     }
   }
 }
