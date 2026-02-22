@@ -59,7 +59,6 @@ class MembershipsRepository {
   }
 
   // Approve a pending request and assign room
-  // 🆕 UPDATED: Now includes optional rent fields
   Future<Membership> approveMembership({
     required String membershipId,
     required String roomId,
@@ -68,21 +67,13 @@ class MembershipsRepository {
     int? paymentDueDay,
   }) async {
     try {
-      // Build request body
       final Map<String, dynamic> requestData = {
         'roomId': roomId,
       };
 
-      // Add rent fields if provided
-      if (monthlyRent != null) {
-        requestData['monthlyRent'] = monthlyRent;
-      }
-      if (rentStartDate != null) {
-        requestData['rentStartDate'] = DateFormatter.formatForApi(rentStartDate);
-      }
-      if (paymentDueDay != null) {
-        requestData['paymentDueDay'] = paymentDueDay;
-      }
+      if (monthlyRent != null) requestData['monthlyRent'] = monthlyRent;
+      if (rentStartDate != null) requestData['rentStartDate'] = DateFormatter.formatForApi(rentStartDate);
+      if (paymentDueDay != null) requestData['paymentDueDay'] = paymentDueDay;
 
       final response = await _apiClient.post(
         '/memberships/$membershipId/approve',
@@ -158,6 +149,99 @@ class MembershipsRepository {
       rethrow;
     } catch (e) {
       throw Exception('Failed to remove membership: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: Get all room leases for a membership
+  Future<List<RoomLease>> getRoomLeases(String membershipId) async {
+    try {
+      final response = await _apiClient.get(
+        '/memberships/$membershipId/room-leases',
+        fromJson: (data) {
+          if (data is List) {
+            return data.map((json) => RoomLease.fromJson(json as Map<String, dynamic>)).toList();
+          }
+          return <RoomLease>[];
+        },
+      );
+
+      if (!response.ok || response.data == null) {
+        throw Exception('Failed to load room leases');
+      }
+
+      return response.data!;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to load room leases: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: Approve a pending room lease request
+  Future<RoomLease> approveRoomLease({
+    required String leaseId,
+    required int monthlyRent,
+    required DateTime rentStartDate,
+    required int paymentDueDay,
+  }) async {
+    try {
+      final response = await _apiClient.post(
+        '/room-leases/$leaseId/approve',
+        data: {
+          'monthlyRent': monthlyRent,
+          'rentStartDate': DateFormatter.formatForApi(rentStartDate),
+          'paymentDueDay': paymentDueDay,
+        },
+        fromJson: (data) => RoomLease.fromJson(data as Map<String, dynamic>),
+      );
+
+      if (!response.ok || response.data == null) {
+        throw Exception('Failed to approve room lease');
+      }
+
+      return response.data!;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to approve room lease: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: Reject a pending room lease request
+  Future<void> rejectRoomLease(String leaseId) async {
+    try {
+      final response = await _apiClient.post(
+        '/room-leases/$leaseId/reject',
+        data: {},
+        fromJson: (data) => data,
+      );
+
+      if (!response.ok) {
+        throw Exception('Failed to reject room lease');
+      }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to reject room lease: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: End an active room lease
+  Future<void> endRoomLease(String leaseId) async {
+    try {
+      final response = await _apiClient.post(
+        '/room-leases/$leaseId/end',
+        data: {},
+        fromJson: (data) => data,
+      );
+
+      if (!response.ok) {
+        throw Exception('Failed to end room lease');
+      }
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to end room lease: ${e.toString()}');
     }
   }
 }

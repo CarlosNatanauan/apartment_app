@@ -1,4 +1,5 @@
 import 'package:apartment_app/core/api/api_response.dart';
+import 'package:apartment_app/core/constants/app_constants.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/landlord_maintenance_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/widgets/dialogs/update_status_dialog.dart';
 import 'package:apartment_app/features/tenant/data/models/maintenance_request_model.dart';
@@ -89,10 +90,9 @@ class _LandlordMaintenanceDetailsScreenState
     setState(() => _isAddingComment = true);
 
     try {
-      await ref.read(landlordMaintenanceProvider.notifier).addComment(
-            widget.requestId,
-            _commentController.text.trim(),
-          );
+      await ref
+          .read(landlordMaintenanceProvider.notifier)
+          .addComment(widget.requestId, _commentController.text.trim());
 
       _commentController.clear();
       setState(() => _isAddingComment = false);
@@ -151,9 +151,7 @@ class _LandlordMaintenanceDetailsScreenState
 
     if (isLoading || request == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Request Details'),
-        ),
+        appBar: AppBar(title: const Text('Request Details')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -213,7 +211,8 @@ class _LandlordMaintenanceDetailsScreenState
                               radius: 20,
                               backgroundColor: AppTheme.tenantColor,
                               child: Text(
-                                request.tenantFirstName?[0].toUpperCase() ?? 'T',
+                                request.tenantFirstName?[0].toUpperCase() ??
+                                    'T',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -235,7 +234,9 @@ class _LandlordMaintenanceDetailsScreenState
                                   ),
                                   Text(
                                     request.tenantEmail ?? '',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -270,11 +271,7 @@ class _LandlordMaintenanceDetailsScreenState
                 const SizedBox(height: 16),
 
                 // Title
-                _buildInfoSection(
-                  'Title',
-                  request.title,
-                  Icons.title_outlined,
-                ),
+                _buildInfoSection('Title', request.title, Icons.title_outlined),
 
                 const SizedBox(height: 16),
 
@@ -286,7 +283,7 @@ class _LandlordMaintenanceDetailsScreenState
                 ),
 
                 // Image (if present)
-                if (request.imageData != null) ...[
+                if (request.imageUrl != null || request.imageData != null) ...[
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
@@ -300,24 +297,35 @@ class _LandlordMaintenanceDetailsScreenState
                               const SizedBox(width: 8),
                               Text(
                                 'Photo',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(
-                              Uri.parse(request.imageData!)
-                                  .data!
-                                  .contentAsBytes(),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
+
+                          // NEW backend (preferred)
+                          if (request.imageUrl != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                '${AppConstants.baseUrl}${request.imageUrl}',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                            )
+                          // OLD fallback (optional)
+                          else if (request.imageData != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.memory(
+                                Uri.parse(
+                                  request.imageData!,
+                                ).data!.contentAsBytes(),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -329,9 +337,9 @@ class _LandlordMaintenanceDetailsScreenState
                 // Comments Section
                 Text(
                   'Comments (${request.comments.length})',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
 
@@ -514,16 +522,13 @@ class _LandlordMaintenanceDetailsScreenState
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              content,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text(content, style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       ),

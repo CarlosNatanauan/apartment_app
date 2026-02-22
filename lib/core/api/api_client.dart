@@ -7,6 +7,40 @@ class ApiClient {
   late final Dio _dio;
   final SecureStorage _storage;
 
+
+
+  Future<ApiResponse<T>> postMultipart<T>(
+    String path, {
+    required FormData formData,
+    T Function(dynamic)? fromJson,
+    ProgressCallback? onSendProgress,
+  }) async {
+    try {
+      final response = await _dio.post(
+        path,
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+          headers: {
+            'Accept': 'application/json',
+            // Do NOT set Content-Type manually to application/json for this call
+          },
+        ),
+        onSendProgress: onSendProgress,
+      );
+
+      _checkAndThrowError(response);
+
+      return ApiResponse<T>.fromJson(response.data, fromJson);
+    } on DioException catch (e) {
+      if (e.response == null) {
+        throw ApiException('Network error. Please check your connection.');
+      }
+      rethrow;
+    }
+  }
+
+
   ApiClient(this._storage) {
     _dio = Dio(
       BaseOptions(

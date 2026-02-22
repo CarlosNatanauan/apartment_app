@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -124,53 +126,44 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
     }
   }
 
-  // Create new request
-Future<void> createRequest({
-  required String spaceId,     // 🆕 NEW
-  required String roomId,      // 🆕 NEW
-  required MaintenanceCategory category,
-  String? customCategory,
-  required String title,
-  required String description,
-  String? imageData,
-}) async {
-  print('🛠️ [MAINTENANCE] Creating request: $title');
-  state = state.copyWith(isSubmitting: true, clearError: true);
+  // ✅ UPDATED: Create new request (roomId only + file upload)
+  Future<void> createRequest({
+    required String roomId,
+    required MaintenanceCategory category,
+    String? customCategory,
+    required String title,
+    required String description,
+    File? imageFile,
+  }) async {
+    print('🛠️ [MAINTENANCE] Creating request: $title');
+    state = state.copyWith(isSubmitting: true, clearError: true);
 
-  try {
-    final request = await _repository.createRequest(
-      spaceId: spaceId,       // 🆕 NEW
-      roomId: roomId,         // 🆕 NEW
-      category: category,
-      customCategory: customCategory,
-      title: title,
-      description: description,
-      imageData: imageData,
-    );
+    try {
+      final request = await _repository.createRequest(
+        roomId: roomId,
+        category: category,
+        customCategory: customCategory,
+        title: title,
+        description: description,
+        imageFile: imageFile,
+      );
+
       print('🛠️ [MAINTENANCE] Request created: ${request.id}');
 
-      // Add to list
       state = state.copyWith(
         requests: [request, ...state.requests],
         isSubmitting: false,
       );
     } on ApiException catch (e) {
       print('❌ [MAINTENANCE] ApiException: ${e.message}');
-      state = state.copyWith(
-        isSubmitting: false,
-        error: e.message,
-      );
+      state = state.copyWith(isSubmitting: false, error: e.message);
       rethrow;
     } catch (e) {
       print('❌ [MAINTENANCE] Exception: $e');
-      state = state.copyWith(
-        isSubmitting: false,
-        error: 'Failed to create request',
-      );
+      state = state.copyWith(isSubmitting: false, error: 'Failed to create request');
       rethrow;
     }
   }
-
   // Add comment
   Future<void> addComment(String requestId, String content) async {
     print('🛠️ [MAINTENANCE] Adding comment to: $requestId');

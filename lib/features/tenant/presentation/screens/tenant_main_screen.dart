@@ -1,5 +1,6 @@
 import 'package:apartment_app/features/tenant/presentation/screens/my_maintenance_screen.dart';
 import 'package:apartment_app/features/tenant/presentation/screens/my_memberships_screen.dart';
+import 'package:apartment_app/features/tenant/presentation/screens/tenant_dashboard.dart';
 import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 
@@ -14,8 +15,9 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = const [
-    MyMembershipsScreen(),   // My Spaces
-    MyMaintenanceScreen(),   // ✅ Maintenance
+    TenantDashboard(),         // 🆕 Dashboard (first tab)
+    MyMembershipsScreen(),     // My Spaces (second tab)
+    MyMaintenanceScreen(),     // Maintenance (third tab)
   ];
 
   @override
@@ -36,6 +38,11 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
         unselectedItemColor: AppTheme.textHint,
         items: const [
           BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.apartment_outlined),
             activeIcon: Icon(Icons.apartment),
             label: 'My Spaces',
@@ -45,11 +52,8 @@ class _TenantMainScreenState extends State<TenantMainScreen> {
             activeIcon: Icon(Icons.build),
             label: 'Maintenance',
           ),
-
         ],
       ),
     );
   }
 }
-
-

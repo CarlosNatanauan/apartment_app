@@ -61,7 +61,7 @@ class TenantMembershipsRepository {
     }
   }
 
-  // Leave a space
+  // Leave entire space (ends ALL room leases + ends membership)
   Future<void> leaveSpace(String membershipId) async {
     try {
       final response = await _apiClient.post(
@@ -80,7 +80,31 @@ class TenantMembershipsRepository {
     }
   }
 
-  // 🆕 NEW: Request to join another room in a space
+  // 🆕 NEW: Leave a single room (ends ONE lease, membership stays ACTIVE)
+  Future<void> leaveRoomLease(String leaseId) async {
+    try {
+      print('🟡 Leaving room lease: $leaseId');
+      
+      final response = await _apiClient.post(
+        '/room-leases/$leaseId/end',
+        data: {},
+        fromJson: (data) => data,
+      );
+
+      if (!response.ok) {
+        throw Exception('Failed to leave room');
+      }
+
+      print('✅ Room lease ended successfully');
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      print('🔴 Error leaving room: $e');
+      throw Exception('Failed to leave room: ${e.toString()}');
+    }
+  }
+
+  // Request to join another room in a space
   Future<RoomLease> requestRoomLease({
     required String membershipId,
     required String roomId,

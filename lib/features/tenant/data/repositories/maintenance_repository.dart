@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:apartment_app/core/api/api_client.dart';
 import 'package:apartment_app/core/api/api_response.dart';
+import 'package:dio/dio.dart';
 import '../models/maintenance_request_model.dart';
 
 class MaintenanceRepository {
@@ -7,31 +10,32 @@ class MaintenanceRepository {
 
   MaintenanceRepository(this._apiClient);
 
-  // Create maintenance request
-Future<MaintenanceRequest> createRequest({
-  required String spaceId,     // 🆕 NEW: Required
-  required String roomId,      // 🆕 NEW: Required
-  required MaintenanceCategory category,
-  String? customCategory,
-  required String title,
-  required String description,
-  String? imageData,
-}) async {
-  try {
-    final requestData = {
-      'spaceId': spaceId,      // 🆕 NEW
-      'roomId': roomId,        // 🆕 NEW
-      'category': category.value,
-      if (customCategory != null && category == MaintenanceCategory.other)
-        'customCategory': customCategory,
-      'title': title,
-      'description': description,
-      if (imageData != null) 'imageData': imageData,
-    };
+  Future<MaintenanceRequest> createRequest({
+    required String roomId, // ✅ roomId only
+    required MaintenanceCategory category,
+    String? customCategory,
+    required String title,
+    required String description,
+    File? imageFile, // ✅ real file (optional)
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'roomId': roomId,
+        'category': category.value,
+        'title': title,
+        'description': description,
+        if (customCategory != null && category == MaintenanceCategory.other)
+          'customCategory': customCategory,
+        if (imageFile != null)
+          'image': await MultipartFile.fromFile(
+            imageFile.path,
+            filename: imageFile.path.split('/').last,
+          ),
+      });
 
-      final response = await _apiClient.post(
+      final response = await _apiClient.postMultipart(
         '/maintenance',
-        data: requestData,
+        formData: formData,
         fromJson: (data) => MaintenanceRequest.fromJson(data),
       );
 

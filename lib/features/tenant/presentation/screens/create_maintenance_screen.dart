@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:apartment_app/core/api/api_response.dart';
@@ -28,14 +27,16 @@ class _CreateMaintenanceScreenState
   final _imagePicker = ImagePicker();
 
   MaintenanceCategory _selectedCategory = MaintenanceCategory.plumbing;
-  String? _selectedMembershipId; // 🆕 NEW: Track selected membership
+
+  // ✅ NEW: roomId selector (not membershipId)
+  String? _selectedRoomId;
+
   XFile? _selectedImage;
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
-    // 🆕 Load memberships on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(tenantMembershipsProvider.notifier).loadMemberships();
     });
@@ -59,9 +60,7 @@ class _CreateMaintenanceScreenState
       );
 
       if (image != null) {
-        setState(() {
-          _selectedImage = image;
-        });
+        setState(() => _selectedImage = image);
       }
     } catch (e) {
       if (mounted) {
@@ -75,58 +74,62 @@ class _CreateMaintenanceScreenState
     }
   }
 
-  Future<String?> _convertImageToBase64() async {
-    if (_selectedImage == null) return null;
-
-    try {
-      final bytes = await File(_selectedImage!.path).readAsBytes();
-      return 'data:image/jpeg;base64,${base64Encode(bytes)}';
-    } catch (e) {
-      print('❌ Failed to convert image: $e');
-      return null;
-    }
-  }
-
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isSubmitting = true);
 
     try {
-      // 🆕 Get selected membership (or first one if only one exists)
       final membershipsState = ref.read(tenantMembershipsProvider);
       final activeMemberships = membershipsState.activeMemberships;
 
-      if (activeMemberships.isEmpty) {
-        throw Exception('No active memberships found');
+      // ✅ Build active room options from ALL active leases
+      final activeRoomOptions = <_RoomOption>[];
+      for (final m in activeMemberships) {
+        for (final lease in m.activeLeases) {
+          if (lease.roomId == null) continue;
+          activeRoomOptions.add(
+            _RoomOption(
+              roomId: lease.roomId!,
+              label:
+                  '${m.spaceName ?? 'Space'} - Room ${lease.roomNumber ?? 'N/A'}',
+            ),
+          );
+        }
       }
 
-      // Get the selected membership
-      final selectedMembership = activeMemberships.length == 1
-          ? activeMemberships.first
-          : activeMemberships.firstWhere(
-              (m) => m.id == _selectedMembershipId,
-              orElse: () => throw Exception('Please select a space and room'),
-            );
-
-      // Validate spaceId and roomId exist
-      if (selectedMembership.spaceId == null || selectedMembership.roomId == null) {
-        throw Exception('Selected membership is missing space or room information');
+      if (activeRoomOptions.isEmpty) {
+        throw Exception(
+          'You must have an active room lease to create a maintenance request.',
+        );
       }
 
-      // Convert image if present
-      final imageData = await _convertImageToBase64();
+      final roomId = activeRoomOptions.length == 1
+          ? activeRoomOptions.first.roomId
+          : activeRoomOptions.firstWhere(
+              (o) => o.roomId == _selectedRoomId,
+              orElse: () => throw Exception('Please select a room'),
+            ).roomId;
+
+      File? imageFile;
+      if (_selectedImage != null) {
+        imageFile = File(_selectedImage!.path);
+
+        // ✅ optional: enforce 5MB client-side
+        final size = await imageFile.length();
+        if (size > 5 * 1024 * 1024) {
+          throw Exception('Image must be 5MB or less.');
+        }
+      }
 
       await ref.read(maintenanceProvider.notifier).createRequest(
-            spaceId: selectedMembership.spaceId!, // 🆕 Pass spaceId
-            roomId: selectedMembership.roomId!, // 🆕 Pass roomId
+            roomId: roomId,
             category: _selectedCategory,
             customCategory: _selectedCategory == MaintenanceCategory.other
                 ? _customCategoryController.text.trim()
                 : null,
             title: _titleController.text.trim(),
             description: _descriptionController.text.trim(),
-            imageData: imageData,
+            imageFile: imageFile,
           );
 
       if (mounted) {
@@ -136,17 +139,13 @@ class _CreateMaintenanceScreenState
               children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
-                Expanded(
-                  child: Text('Request created successfully'),
-                ),
+                Expanded(child: Text('Request created successfully')),
               ],
             ),
             backgroundColor: AppTheme.successColor,
             duration: Duration(seconds: 2),
           ),
         );
-
-        // Navigate back
         context.pop();
       }
     } on ApiException catch (e) {
@@ -174,48 +173,49 @@ class _CreateMaintenanceScreenState
 
   @override
   Widget build(BuildContext context) {
-    // 🆕 Watch memberships state
     final membershipsState = ref.watch(tenantMembershipsProvider);
     final activeMemberships = membershipsState.activeMemberships;
     final isLoadingMemberships = membershipsState.isLoading;
 
-    // 🆕 Show loading while memberships are being fetched
+    // ✅ Build active room options for UI
+    final activeRoomOptions = <_RoomOption>[];
+    for (final m in activeMemberships) {
+      for (final lease in m.activeLeases) {
+        if (lease.roomId == null) continue;
+        activeRoomOptions.add(
+          _RoomOption(
+            roomId: lease.roomId!,
+            label: '${m.spaceName ?? 'Space'} - Room ${lease.roomNumber ?? 'N/A'}',
+          ),
+        );
+      }
+    }
+
     if (isLoadingMemberships && activeMemberships.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('New Maintenance Request'),
-        ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        appBar: AppBar(title: const Text('New Maintenance Request')),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    // 🆕 Show error if no active memberships
-    if (activeMemberships.isEmpty) {
+    // ✅ NEW: no active rooms (backend will 400 anyway)
+    if (activeRoomOptions.isEmpty) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('New Maintenance Request'),
-        ),
+        appBar: AppBar(title: const Text('New Maintenance Request')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.warning_outlined,
-                  size: 64,
-                  color: AppTheme.warningColor,
-                ),
+                Icon(Icons.warning_outlined,
+                    size: 64, color: AppTheme.warningColor),
                 const SizedBox(height: 16),
-                Text(
-                  'No Active Memberships',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text('No Active Rooms',
+                    style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Text(
-                  'You need to join a space before creating maintenance requests.',
+                  'You must have an active room lease to create a maintenance request.',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -232,47 +232,39 @@ class _CreateMaintenanceScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Maintenance Request'),
-      ),
+      appBar: AppBar(title: const Text('New Maintenance Request')),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // 🆕 NEW: Space/Room Selector (ONLY if multiple active memberships)
-            if (activeMemberships.length > 1) ...[
+            // ✅ Room selector only if multiple active rooms
+            if (activeRoomOptions.length > 1) ...[
               Text(
-                'Select Space & Room',
+                'Which room is this for?',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedMembershipId,
+                value: _selectedRoomId,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.apartment),
-                  hintText: 'Select space and room',
+                  prefixIcon: Icon(Icons.meeting_room_outlined),
+                  hintText: 'Select room',
                 ),
-                items: activeMemberships.map((membership) {
+                items: activeRoomOptions.map((o) {
                   return DropdownMenuItem(
-                    value: membership.id,
-                    child: Text(
-                      '${membership.spaceName ?? 'Unknown'} - Room ${membership.roomNumber ?? 'N/A'}',
-                    ),
+                    value: o.roomId,
+                    child: Text(o.label),
                   );
                 }).toList(),
                 onChanged: _isSubmitting
                     ? null
-                    : (value) {
-                        setState(() {
-                          _selectedMembershipId = value;
-                        });
-                      },
+                    : (value) => setState(() => _selectedRoomId = value),
                 validator: (value) {
-                  if (activeMemberships.length > 1 && value == null) {
-                    return 'Please select a space and room';
+                  if (activeRoomOptions.length > 1 && value == null) {
+                    return 'Please select a room';
                   }
                   return null;
                 },
@@ -282,35 +274,29 @@ class _CreateMaintenanceScreenState
               const SizedBox(height: 16),
             ],
 
-            // 🆕 Show selected space info if only one membership
-            if (activeMemberships.length == 1) ...[
+            // ✅ Show selected info if only one active room
+            if (activeRoomOptions.length == 1) ...[
               Card(
                 color: AppTheme.tenantColor.withOpacity(0.1),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.apartment,
-                        color: AppTheme.tenantColor,
-                      ),
+                      Icon(Icons.apartment, color: AppTheme.tenantColor),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Text('Reporting for:',
+                                style:
+                                    Theme.of(context).textTheme.bodySmall),
                             Text(
-                              'Reporting for:',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            Text(
-                              '${activeMemberships.first.spaceName ?? 'Unknown'} - Room ${activeMemberships.first.roomNumber ?? 'N/A'}',
+                              activeRoomOptions.first.label,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  ?.copyWith(fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -348,22 +334,16 @@ class _CreateMaintenanceScreenState
                       if (value != null) {
                         setState(() {
                           _selectedCategory = value;
-                          // Clear custom category if switching away from Other
                           if (value != MaintenanceCategory.other) {
                             _customCategoryController.clear();
                           }
                         });
                       }
                     },
-              validator: (value) {
-                if (value == null) {
-                  return 'Please select a category';
-                }
-                return null;
-              },
+              validator: (value) =>
+                  value == null ? 'Please select a category' : null,
             ),
 
-            // Custom Category (shown when Other is selected)
             if (_selectedCategory == MaintenanceCategory.other) ...[
               const SizedBox(height: 16),
               TextFormField(
@@ -408,15 +388,9 @@ class _CreateMaintenanceScreenState
               textCapitalization: TextCapitalization.sentences,
               enabled: !_isSubmitting,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a title';
-                }
-                if (value.trim().length < 5) {
-                  return 'Title must be at least 5 characters';
-                }
-                if (value.trim().length > 100) {
-                  return 'Title must not exceed 100 characters';
-                }
+                if (value == null || value.trim().isEmpty) return 'Please enter a title';
+                if (value.trim().length < 5) return 'Title must be at least 5 characters';
+                if (value.trim().length > 100) return 'Title must not exceed 100 characters';
                 return null;
               },
             ),
@@ -442,15 +416,9 @@ class _CreateMaintenanceScreenState
               maxLines: 5,
               enabled: !_isSubmitting,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a description';
-                }
-                if (value.trim().length < 10) {
-                  return 'Description must be at least 10 characters';
-                }
-                if (value.trim().length > 1000) {
-                  return 'Description must not exceed 1000 characters';
-                }
+                if (value == null || value.trim().isEmpty) return 'Please enter a description';
+                if (value.trim().length < 10) return 'Description must be at least 10 characters';
+                if (value.trim().length > 1000) return 'Description must not exceed 1000 characters';
                 return null;
               },
             ),
@@ -475,16 +443,11 @@ class _CreateMaintenanceScreenState
               child: Column(
                 children: [
                   if (_selectedImage == null) ...[
-                    Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 48,
-                      color: AppTheme.textHint,
-                    ),
+                    Icon(Icons.add_photo_alternate_outlined,
+                        size: 48, color: AppTheme.textHint),
                     const SizedBox(height: 8),
-                    Text(
-                      'Add a photo of the issue',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text('Add a photo of the issue',
+                        style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: _isSubmitting ? null : _pickImage,
@@ -509,17 +472,10 @@ class _CreateMaintenanceScreenState
                           child: CircleAvatar(
                             backgroundColor: Colors.black54,
                             child: IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                              ),
+                              icon: const Icon(Icons.close, color: Colors.white),
                               onPressed: _isSubmitting
                                   ? null
-                                  : () {
-                                      setState(() {
-                                        _selectedImage = null;
-                                      });
-                                    },
+                                  : () => setState(() => _selectedImage = null),
                             ),
                           ),
                         ),
@@ -538,7 +494,6 @@ class _CreateMaintenanceScreenState
 
             const SizedBox(height: 32),
 
-            // Submit Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -553,8 +508,7 @@ class _CreateMaintenanceScreenState
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text('Submit Request'),
@@ -563,7 +517,6 @@ class _CreateMaintenanceScreenState
 
             const SizedBox(height: 16),
 
-            // Help text
             Center(
               child: Text(
                 'Your request will be sent to the landlord',
@@ -576,4 +529,10 @@ class _CreateMaintenanceScreenState
       ),
     );
   }
+}
+
+class _RoomOption {
+  final String roomId;
+  final String label;
+  _RoomOption({required this.roomId, required this.label});
 }

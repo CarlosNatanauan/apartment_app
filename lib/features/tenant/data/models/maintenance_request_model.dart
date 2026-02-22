@@ -51,33 +51,42 @@ enum MaintenanceCategory {
   }
 }
 
-// Models
+// =======================================================
+// MODELS
+// =======================================================
+
 class MaintenanceRequest {
   final String id;
   final MaintenanceCategory category;
   final String? customCategory;
   final String title;
   final String description;
+
+  /// OLD API (base64 data URL)
   final String? imageData;
+
+  /// NEW API (relative path like "/uploads/maintenance/uuid.jpg")
+  final String? imageUrl;
+
   final MaintenanceStatus status;
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? resolvedAt;
-  
+
   // Space info
   final String? spaceId;
   final String? spaceName;
-  
+
   // Room info
   final String? roomId;
   final String? roomNumber;
-  
+
   // Tenant info (for landlord view)
   final String? tenantId;
   final String? tenantFirstName;
   final String? tenantLastName;
   final String? tenantEmail;
-  
+
   // Comments
   final int commentCount;
 
@@ -88,6 +97,7 @@ class MaintenanceRequest {
     required this.title,
     required this.description,
     this.imageData,
+    this.imageUrl,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -126,52 +136,58 @@ class MaintenanceRequest {
   bool get canCancel => status == MaintenanceStatus.pending;
 
   factory MaintenanceRequest.fromJson(Map<String, dynamic> json) {
-    // Extract IDs
-    final requestId = json['requestId'] as String? ?? json['id'] as String;
-    
-    // Extract category
-    final categoryStr = json['category'] as String;
+    // ids
+    final requestId = (json['id'] ?? json['requestId']) as String;
+
+    // category (null-safe + default)
+    final categoryStr = (json['category'] as String?) ?? 'OTHER';
     final category = MaintenanceCategory.fromString(categoryStr);
     final customCategory = json['customCategory'] as String?;
-    
-    // Extract basic fields
-    final title = json['title'] as String;
-    final description = json['description'] as String;
+
+    // basic
+    final title = (json['title'] as String?) ?? '';
+    final description = (json['description'] as String?) ?? '';
+
+    // image (support old + new backend)
     final imageData = json['imageData'] as String?;
-    
-    // Extract status
-    final statusStr = json['status'] as String;
+    final imageUrl = json['imageUrl'] as String?;
+
+    // status
+    final statusStr = (json['status'] as String?) ?? 'PENDING';
     final status = MaintenanceStatus.fromString(statusStr);
-    
-    // Extract timestamps
+
+    // timestamps (updatedAt can be null)
     final createdAt = DateTime.parse(json['createdAt'] as String);
-    final updatedAt = DateTime.parse(json['updatedAt'] as String);
-    
+    final updatedAtStr = json['updatedAt'] as String?;
+    final updatedAt =
+        updatedAtStr != null ? DateTime.parse(updatedAtStr) : createdAt;
+
     DateTime? resolvedAt;
-    if (json['resolvedAt'] != null) {
-      resolvedAt = DateTime.parse(json['resolvedAt'] as String);
+    final resolvedAtStr = json['resolvedAt'] as String?;
+    if (resolvedAtStr != null) {
+      resolvedAt = DateTime.parse(resolvedAtStr);
     }
-    
-    // Extract space info
+
+    // space (NEW backend: space.id, old: space.spaceId)
     final space = json['space'] as Map<String, dynamic>?;
-    final spaceId = space?['spaceId'] as String?;
+    final spaceId = (space?['spaceId'] ?? space?['id']) as String?;
     final spaceName = space?['name'] as String?;
-    
-    // Extract room info
+
+    // room (NEW backend: room.id, old: room.roomId)
     final room = json['room'] as Map<String, dynamic>?;
-    final roomId = room?['roomId'] as String?;
+    final roomId = (room?['roomId'] ?? room?['id']) as String?;
     final roomNumber = room?['roomNumber']?.toString();
-    
-    // Extract tenant info (for landlord view)
+
+    // tenant info
     final tenant = json['tenant'] as Map<String, dynamic>?;
-    final tenantId = tenant?['tenantId'] as String?;
+    final tenantId = (tenant?['tenantId'] ?? tenant?['id']) as String?;
     final tenantFirstName = tenant?['firstName'] as String?;
     final tenantLastName = tenant?['lastName'] as String?;
     final tenantEmail = tenant?['email'] as String?;
-    
-    // Extract comment count
-    final commentCount = json['commentCount'] as int? ?? 0;
-    
+
+    // comments
+    final commentCount = (json['commentCount'] as int?) ?? 0;
+
     return MaintenanceRequest(
       id: requestId,
       category: category,
@@ -179,6 +195,7 @@ class MaintenanceRequest {
       title: title,
       description: description,
       imageData: imageData,
+      imageUrl: imageUrl,
       status: status,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -203,6 +220,7 @@ class MaintenanceRequest {
       'title': title,
       'description': description,
       if (imageData != null) 'imageData': imageData,
+      if (imageUrl != null) 'imageUrl': imageUrl,
       'status': status.value,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -223,7 +241,7 @@ class MaintenanceRequest {
   String toString() {
     return 'MaintenanceRequest('
         'id: $id, '
-        'category: ${categoryDisplay}, '
+        'category: $categoryDisplay, '
         'title: $title, '
         'status: ${status.displayName}, '
         'space: $spaceName, '
@@ -246,12 +264,13 @@ class MaintenanceComment {
   });
 
   factory MaintenanceComment.fromJson(Map<String, dynamic> json) {
-    final commentId = json['commentId'] as String? ?? json['id'] as String;
-    final content = json['content'] as String;
+    final commentId = (json['commentId'] ?? json['id']) as String;
+    final content = (json['content'] as String?) ?? '';
     final createdAt = DateTime.parse(json['createdAt'] as String);
-    final authorJson = json['author'] as Map<String, dynamic>;
+
+    final authorJson = (json['author'] as Map<String, dynamic>?) ?? const {};
     final author = CommentAuthor.fromJson(authorJson);
-    
+
     return MaintenanceComment(
       id: commentId,
       content: content,
@@ -286,17 +305,17 @@ class CommentAuthor {
   });
 
   String get fullName => '$firstName $lastName';
-  
+
   bool get isLandlord => role == 'LANDLORD';
   bool get isTenant => role == 'TENANT';
 
   factory CommentAuthor.fromJson(Map<String, dynamic> json) {
-    final authorId = json['authorId'] as String? ?? json['id'] as String;
-    final firstName = json['firstName'] as String;
-    final lastName = json['lastName'] as String;
-    final email = json['email'] as String;
-    final role = json['role'] as String;
-    
+    final authorId = (json['authorId'] ?? json['id']) as String? ?? '';
+    final firstName = (json['firstName'] as String?) ?? '';
+    final lastName = (json['lastName'] as String?) ?? '';
+    final email = (json['email'] as String?) ?? '';
+    final role = (json['role'] as String?) ?? '';
+
     return CommentAuthor(
       id: authorId,
       firstName: firstName,
@@ -328,6 +347,7 @@ class MaintenanceRequestDetails extends MaintenanceRequest {
     required super.title,
     required super.description,
     super.imageData,
+    super.imageUrl,
     required super.status,
     required super.createdAt,
     required super.updatedAt,
@@ -345,15 +365,13 @@ class MaintenanceRequestDetails extends MaintenanceRequest {
   });
 
   factory MaintenanceRequestDetails.fromJson(Map<String, dynamic> json) {
-    // Parse base request
     final baseRequest = MaintenanceRequest.fromJson(json);
-    
-    // Parse comments
+
     final commentsJson = json['comments'] as List? ?? [];
     final comments = commentsJson
         .map((c) => MaintenanceComment.fromJson(c as Map<String, dynamic>))
         .toList();
-    
+
     return MaintenanceRequestDetails(
       id: baseRequest.id,
       category: baseRequest.category,
@@ -361,6 +379,7 @@ class MaintenanceRequestDetails extends MaintenanceRequest {
       title: baseRequest.title,
       description: baseRequest.description,
       imageData: baseRequest.imageData,
+      imageUrl: baseRequest.imageUrl,
       status: baseRequest.status,
       createdAt: baseRequest.createdAt,
       updatedAt: baseRequest.updatedAt,
