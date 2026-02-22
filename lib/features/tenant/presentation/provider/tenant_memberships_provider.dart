@@ -97,7 +97,7 @@ class TenantMembershipsNotifier extends Notifier<TenantMembershipsState> {
     }
   }
 
-  // Leave a space
+  // Leave entire space (ends ALL leases + membership)
   Future<void> leaveSpace(String membershipId) async {
     try {
       await _repository.leaveSpace(membershipId);
@@ -110,7 +110,30 @@ class TenantMembershipsNotifier extends Notifier<TenantMembershipsState> {
     }
   }
 
-  // 🆕 NEW: Request to join another room
+  // 🆕 NEW: Leave a single room (ends ONE lease, membership stays ACTIVE)
+  Future<void> leaveRoomLease({
+    required String membershipId,
+    required String leaseId,
+  }) async {
+    try {
+      print('🟡 [TENANT PROVIDER] Leaving room lease: $leaseId');
+      
+      await _repository.leaveRoomLease(leaseId);
+      
+      print('✅ [TENANT PROVIDER] Room lease ended');
+      
+      // Reload memberships to get updated lease statuses
+      await loadMemberships();
+    } on ApiException catch (e) {
+      print('🔴 [TENANT PROVIDER] ApiException: ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('🔴 [TENANT PROVIDER] Exception: $e');
+      throw Exception('Failed to leave room: ${e.toString()}');
+    }
+  }
+
+  // Request to join another room
   Future<void> requestRoomLease({
     required String membershipId,
     required String roomId,

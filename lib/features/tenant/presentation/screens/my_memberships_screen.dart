@@ -5,6 +5,7 @@ import 'package:apartment_app/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:apartment_app/features/landlord/data/models/membership_model.dart';
 
 class MyMembershipsScreen extends ConsumerStatefulWidget {
   const MyMembershipsScreen({super.key});
@@ -26,14 +27,34 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
     await ref.read(tenantMembershipsProvider.notifier).loadMemberships();
   }
 
-  Future<void> _handleLeave(String membershipId, String spaceName) async {
+  Future<void> _handleLeave(Membership membership) async {
+    final spaceName = membership.spaceName ?? 'Space';
+    final activeRoomCount = membership.activeRoomCount;
+    
+    // Build warning message based on number of active rooms
+    String warningMessage;
+    if (activeRoomCount > 1) {
+      warningMessage = 
+          'Are you sure you want to leave "$spaceName"?\n\n'
+          'You currently have $activeRoomCount active rooms:\n'
+          '${membership.activeLeases.map((l) => '  • Room ${l.roomNumber}').join('\n')}\n\n'
+          'Leaving the space will end ALL your room leases.\n\n'
+          'Tip: If you only want to leave one room, expand the card and tap "Leave Room" on that specific room.';
+    } else if (activeRoomCount == 1) {
+      warningMessage = 
+          'Are you sure you want to leave "$spaceName"?\n\n'
+          'This will end your lease for Room ${membership.activeLeases.first.roomNumber}.';
+    } else {
+      warningMessage = 
+          'Are you sure you want to leave "$spaceName"?\n\n'
+          'This action cannot be undone.';
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Leave Space'),
-        content: Text(
-          'Are you sure you want to leave "$spaceName"?\n\nThis action cannot be undone.',
-        ),
+        content: Text(warningMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -44,7 +65,7 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('Leave'),
+            child: Text(activeRoomCount > 1 ? 'Leave All Rooms' : 'Leave Space'),
           ),
         ],
       ),
@@ -53,7 +74,7 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
     if (confirmed != true || !mounted) return;
 
     try {
-      await ref.read(tenantMembershipsProvider.notifier).leaveSpace(membershipId);
+      await ref.read(tenantMembershipsProvider.notifier).leaveSpace(membership.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -125,10 +146,7 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
                       return TenantMembershipCard(
                         membership: membership,
                         onLeave: membership.isActive
-                            ? () => _handleLeave(
-                                  membership.id,
-                                  membership.spaceName ?? 'Space',
-                                )
+                            ? () => _handleLeave(membership)
                             : null,
                       );
                     },

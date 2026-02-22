@@ -117,7 +117,6 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
   }
 
   // Approve membership and assign room
-  // 🆕 UPDATED: Now accepts optional rent parameters
   Future<void> approveMembership({
     required String membershipId,
     required String roomId,
@@ -127,7 +126,7 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
     int? paymentDueDay,
   }) async {
     try {
-      final approvedMembership = await _repository.approveMembership(
+      await _repository.approveMembership(
         membershipId: membershipId,
         roomId: roomId,
         monthlyRent: monthlyRent,
@@ -148,7 +147,6 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
       rethrow;
     }
   }
-
 
   // Reject membership
   Future<bool> rejectMembership(String membershipId) async {
@@ -185,12 +183,11 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
     try {
       print('🚚 Moving membership: $membershipId to room: $roomId');
       
-      // Call move API (returns minimal response)
       await _repository.moveMembership(membershipId, roomId);
       
       print('✅ Membership moved');
       
-      // ✅ Reload active members to get complete updated data
+      // Reload active members to get complete updated data
       await loadActiveMembers(spaceId);
       
       return true;
@@ -234,6 +231,86 @@ class MembershipsNotifier extends Notifier<MembershipsState> {
       
       state = state.copyWith(error: 'Failed to remove membership');
       rethrow;
+    }
+  }
+
+  // 🆕 NEW: Approve a pending room lease
+  Future<void> approveRoomLease({
+    required String membershipId,
+    required String leaseId,
+    required int monthlyRent,
+    required DateTime rentStartDate,
+    required int paymentDueDay,
+    required String spaceId,
+  }) async {
+    try {
+      print('✅ Approving room lease: $leaseId');
+      
+      await _repository.approveRoomLease(
+        leaseId: leaseId,
+        monthlyRent: monthlyRent,
+        rentStartDate: rentStartDate,
+        paymentDueDay: paymentDueDay,
+      );
+      
+      print('✅ Room lease approved');
+      
+      // Reload active members to get updated lease info
+      await loadActiveMembers(spaceId);
+    } on ApiException catch (e) {
+      print('❌ Failed to approve room lease (ApiException): ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('❌ Failed to approve room lease (Exception): $e');
+      throw Exception('Failed to approve room lease: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: Reject a pending room lease
+  Future<void> rejectRoomLease({
+    required String membershipId,
+    required String leaseId,
+    required String spaceId,
+  }) async {
+    try {
+      print('❌ Rejecting room lease: $leaseId');
+      
+      await _repository.rejectRoomLease(leaseId);
+      
+      print('✅ Room lease rejected');
+      
+      // Reload active members to get updated lease info
+      await loadActiveMembers(spaceId);
+    } on ApiException catch (e) {
+      print('❌ Failed to reject room lease (ApiException): ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('❌ Failed to reject room lease (Exception): $e');
+      throw Exception('Failed to reject room lease: ${e.toString()}');
+    }
+  }
+
+  // 🆕 NEW: End an active room lease
+  Future<void> endRoomLease({
+    required String membershipId,
+    required String leaseId,
+    required String spaceId,
+  }) async {
+    try {
+      print('🛑 Ending room lease: $leaseId');
+      
+      await _repository.endRoomLease(leaseId);
+      
+      print('✅ Room lease ended');
+      
+      // Reload active members to get updated lease info
+      await loadActiveMembers(spaceId);
+    } on ApiException catch (e) {
+      print('❌ Failed to end room lease (ApiException): ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('❌ Failed to end room lease (Exception): $e');
+      throw Exception('Failed to end room lease: ${e.toString()}');
     }
   }
 

@@ -25,6 +25,7 @@ class TenantMembershipCard extends ConsumerStatefulWidget {
 class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
   bool _isExpanded = false;
   bool _isRequestingRoom = false;
+  final Set<String> _leavingLeases = {}; // Track which leases are being left
 
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
@@ -102,6 +103,78 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
     } finally {
       if (mounted) {
         setState(() => _isRequestingRoom = false);
+      }
+    }
+  }
+
+  // 🆕 NEW: Leave a single room
+  Future<void> _handleLeaveRoom(RoomLease lease) async {
+    final roomNumber = lease.roomNumber ?? 'Unknown';
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Room'),
+        content: Text(
+          'Are you sure you want to leave Room $roomNumber?\n\n'
+          '${widget.membership.activeRoomCount > 1 
+              ? 'You will still have access to your other rooms in this space.' 
+              : 'This is your only room. Leaving it will remove you from the space entirely.'}'
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('Leave Room'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _leavingLeases.add(lease.leaseId));
+
+    try {
+      await ref.read(tenantMembershipsProvider.notifier).leaveRoomLease(
+            membershipId: widget.membership.id,
+            leaseId: lease.leaseId,
+          );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('Left Room $roomNumber successfully'),
+                ),
+              ],
+            ),
+            backgroundColor: AppTheme.successColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to leave room: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _leavingLeases.remove(lease.leaseId));
       }
     }
   }
@@ -444,7 +517,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                         child: OutlinedButton.icon(
                           onPressed: widget.onLeave,
                           icon: const Icon(Icons.exit_to_app, size: 18),
-                          label: const Text('Leave'),
+                          label: const Text('Leave Space'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.errorColor,
                             side: const BorderSide(color: AppTheme.errorColor),
@@ -493,6 +566,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
 
   Widget _buildLeaseItem(RoomLease lease, bool showRentInfo) {
     final statusColor = _getLeaseStatusColor(lease.status);
+    final isLeaving = _leavingLeases.contains(lease.leaseId);
     
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -583,6 +657,28 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                     ),
                   ),
                 ],
+              ),
+              
+              // 🆕 NEW: Leave Room button for active leases
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isLeaving ? null : () => _handleLeaveRoom(lease),
+                  icon: isLeaving
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.exit_to_app, size: 14),
+                  label: const Text('Leave Room', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.errorColor,
+                    side: const BorderSide(color: AppTheme.errorColor),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                  ),
+                ),
               ),
             ],
 
