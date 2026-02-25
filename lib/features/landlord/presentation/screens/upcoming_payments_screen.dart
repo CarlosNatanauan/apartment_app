@@ -403,7 +403,7 @@ class _UpcomingPaymentCard extends ConsumerWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Room ${payment.roomNumber}',
+                          'Unit ${payment.roomNumber}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppTheme.textSecondary,

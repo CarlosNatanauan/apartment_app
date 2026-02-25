@@ -1,4 +1,5 @@
 import 'package:apartment_app/core/api/api_response.dart';
+import 'package:apartment_app/core/constants/app_constants.dart';
 import 'package:apartment_app/features/tenant/presentation/provider/maintenance_provider.dart';
 import 'package:apartment_app/features/tenant/presentation/screens/widtgets/status_badge.dart';
 import 'package:apartment_app/theme/app_theme.dart';
@@ -245,7 +246,7 @@ class _MaintenanceDetailsScreenState
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '${request.spaceName} - Room ${request.roomNumber}',
+                          '${request.spaceName} - Unit ${request.roomNumber}',
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
                       ],
@@ -254,7 +255,7 @@ class _MaintenanceDetailsScreenState
                 ),
 
                 // Image (if present)
-                if (request.imageData != null) ...[
+                if (request.imageUrl != null || request.imageData != null) ...[
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
@@ -276,14 +277,24 @@ class _MaintenanceDetailsScreenState
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.memory(
-                              Uri.parse(request.imageData!).data!.contentAsBytes(),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
+                          if (request.imageUrl != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                '${AppConstants.baseUrl}${request.imageUrl}',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                            )
+                          else if (request.imageData != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.memory(
+                                Uri.parse(request.imageData!).data!.contentAsBytes(),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),

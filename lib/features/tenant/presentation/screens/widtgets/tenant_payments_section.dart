@@ -311,7 +311,7 @@ class TenantPaymentsSection extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'You don\'t have any active room leases\nfor this period',
+            'You don\'t have any active unit leases\nfor this period',
             style: TextStyle(
               fontSize: 13,
               color: AppTheme.textSecondary,
@@ -403,7 +403,7 @@ class _PaymentCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Room ${payment.roomNumber}',
+                          'Unit ${payment.roomNumber}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,

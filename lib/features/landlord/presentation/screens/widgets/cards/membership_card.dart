@@ -271,7 +271,7 @@ class _MembershipCardState extends State<MembershipCard> {
                   children: [
                     // Active Leases
                     if (membership.activeLeases.isNotEmpty) ...[
-                      _buildSectionHeader('Active Rooms', Icons.check_circle),
+                      _buildSectionHeader('Active Units', Icons.check_circle),
                       const SizedBox(height: 8),
                       ...membership.activeLeases.map((lease) =>
                           _buildLeaseItem(lease, context, 'active')),

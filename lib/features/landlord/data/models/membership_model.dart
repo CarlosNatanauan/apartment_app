@@ -28,9 +28,9 @@ class RoomLease {
     final room = json['room'] as Map<String, dynamic>?;
     
     return RoomLease(
-      leaseId: json['leaseId'] as String? ?? json['id'] as String,
+      leaseId: json['leaseId'] as String? ?? json['id'] as String? ?? '',
       status: json['status'] as String? ?? 'PENDING',
-      roomId: room?['roomId'] as String? ?? room?['id'] as String?,
+      roomId: room?['roomId'] as String? ?? room?['id'] as String? ?? json['roomId'] as String?,
       roomNumber: room?['roomNumber']?.toString(),
       monthlyRent: json['monthlyRent'] as int?,
       rentStartDate: json['rentStartDate'] != null

@@ -44,13 +44,13 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
     String? currentRoomNumber,
   ) async {
     final roomsState = ref.read(roomsProvider);
-    final availableRooms = roomsState.rooms;
+    final availableRooms = roomsState.rooms.where((r) => r.isAvailable).toList();
 
     if (availableRooms.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No available rooms to move to.'),
+            content: Text('No available units to move to.'),
             backgroundColor: AppTheme.warningColor,
           ),
         );
@@ -62,7 +62,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
       context: context,
       builder: (context) => RoomSelectorDialog(
         availableRooms: availableRooms,
-        title: 'Move $displayName to Room',
+        title: 'Move $displayName to Unit',
       ),
     );
 
@@ -84,7 +84,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$displayName moved to new room',
+                    '$displayName moved to new unit',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -139,7 +139,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'This will permanently remove the member and end all their room leases.',
+                      'This will permanently remove the member and end all their unit leases.',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -246,7 +246,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Room $roomNumber lease approved for $tenantName',
+                    'Unit $roomNumber lease approved for $tenantName',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -269,7 +269,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to approve room lease: $e'),
+            content: Text('Failed to approve unit lease: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -287,9 +287,9 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reject Room Request'),
+        title: const Text('Reject Unit Request'),
         content: Text(
-          'Are you sure you want to reject $tenantName\'s request for Room $roomNumber?',
+          'Are you sure you want to reject $tenantName\'s request for Unit $roomNumber?',
         ),
         actions: [
           TextButton(
@@ -325,7 +325,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Room $roomNumber request rejected',
+                    'Unit $roomNumber request rejected',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -348,7 +348,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to reject room lease: $e'),
+            content: Text('Failed to reject unit lease: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -366,13 +366,13 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('End Room Lease'),
+        title: const Text('End Unit Lease'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Are you sure you want to end $tenantName\'s lease for Room $roomNumber?',
+              'Are you sure you want to end $tenantName\'s lease for Unit $roomNumber?',
             ),
             const SizedBox(height: 16),
             Container(
@@ -388,7 +388,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'The room will become available. The member will still have access to other rooms.',
+                      'The unit will become available. The member will still have access to other units.',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -431,7 +431,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Room $roomNumber lease ended',
+                    'Unit $roomNumber lease ended',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -454,7 +454,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to end room lease: $e'),
+            content: Text('Failed to end unit lease: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -559,7 +559,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Approved tenants will appear here with their room assignments.',
+                      'Approved tenants will appear here with their unit assignments.',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -588,7 +588,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            '1. Share join code with tenants\n2. Approve pending requests\n3. Assign rooms',
+                            '1. Share join code with tenants\n2. Approve pending requests\n3. Assign units',
                             textAlign: TextAlign.center,
                             style: TextStyle(fontSize: 12),
                           ),

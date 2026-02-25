@@ -612,7 +612,7 @@ class _UpcomingPaymentItem extends ConsumerWidget {
                     Row(
                       children: [
                         Text(
-                          'Room ${payment.roomNumber}',
+                          'Unit ${payment.roomNumber}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,

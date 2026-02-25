@@ -81,7 +81,7 @@ class _ApproveMembershipDialogState extends State<ApproveMembershipDialog> {
   void _handleSubmit() {
     // Validate room selection
     if (_selectedRoomId == null) {
-      _showError('Please select a room');
+      _showError('Please select a unit');
       return;
     }
 
@@ -189,7 +189,7 @@ class _ApproveMembershipDialogState extends State<ApproveMembershipDialog> {
 
               // Room Selection
               Text(
-                'Room Assignment *',
+                'Unit Assignment *',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -198,14 +198,14 @@ class _ApproveMembershipDialogState extends State<ApproveMembershipDialog> {
               DropdownButtonFormField<String>(
                 value: _selectedRoomId,
                 decoration: InputDecoration(
-                  hintText: 'Select a room',
+                  hintText: 'Select a unit',
                   prefixIcon: const Icon(Icons.door_front_door_outlined),
                   errorText: _selectedRoomId == null ? null : null,
                 ),
                 items: widget.availableRooms.map((room) {
                   return DropdownMenuItem(
                     value: room.id,
-                    child: Text('Room ${room.roomNumber}'),
+                    child: Text('Unit ${room.roomNumber}'),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -214,7 +214,7 @@ class _ApproveMembershipDialogState extends State<ApproveMembershipDialog> {
                   });
                 },
                 validator: (value) {
-                  if (value == null) return 'Room is required';
+                  if (value == null) return 'Unit is required';
                   return null;
                 },
               ),

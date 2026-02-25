@@ -208,7 +208,7 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'This action cannot be undone. All rooms and memberships will be deleted.',
+                      'This action cannot be undone. All units and memberships will be deleted.',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -407,8 +407,8 @@ class _SpaceDetailsScreenState extends ConsumerState<SpaceDetailsScreen> {
                       // Rooms Management
                       ListTile(
                         leading: const Icon(Icons.door_front_door_outlined),
-                        title: const Text('Rooms Management'),
-                        subtitle: const Text('View and manage rooms'),
+                        title: const Text('Units Management'),
+                        subtitle: const Text('View and manage units'),
                         trailing: const Icon(Icons.chevron_right),
                         onTap: () {
                           Navigator.push(

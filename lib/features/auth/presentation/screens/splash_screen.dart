@@ -16,16 +16,23 @@ class SplashScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.apartment,
+              Icons.domain,
               size: 100,
               color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 24),
             Text(
-              'Apartment Manager',
+              'SpaceNest',
               style: Theme.of(context).textTheme.displaySmall,
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 8),
+            Text(
+              'One App for Every Space',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 40),
             const CircularProgressIndicator(),
           ],
         ),

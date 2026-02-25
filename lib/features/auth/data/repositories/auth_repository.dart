@@ -155,6 +155,38 @@ Future<User> register({
     }
   }
 
+  // Google Sign-In
+  Future<User> googleSignIn({required String idToken}) async {
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.googleAuth,
+        data: {'idToken': idToken},
+        fromJson: (data) => LoginResponse.fromJson(data),
+      );
+
+      if (!response.ok || response.data == null) {
+        throw Exception('Google sign-in failed');
+      }
+
+      final loginResponse = response.data!;
+
+      // Save token
+      await _storage.saveToken(loginResponse.accessToken);
+
+      // Get user details from /auth/me
+      final user = await getCurrentUser();
+
+      // Save user data
+      await _storage.saveUser(user);
+
+      return user;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Google sign-in failed: ${e.toString()}');
+    }
+  }
+
   // Check if user is logged in
   Future<bool> isLoggedIn() async {
     return await _storage.hasToken();

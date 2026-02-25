@@ -60,7 +60,7 @@ class RoomCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Room ${room.roomNumber}',
+                            'Unit ${room.roomNumber}',
                             style: Theme.of(context)
                                 .textTheme
                                 .titleMedium
@@ -149,7 +149,7 @@ class RoomCard extends StatelessWidget {
                       icon: const Icon(Icons.delete_outline, size: 20),
                       onPressed: room.isOccupied ? null : onDelete,
                       tooltip: room.isOccupied
-                          ? 'Cannot delete occupied room'
+                          ? 'Cannot delete occupied unit'
                           : 'Delete',
                       color:
                           room.isOccupied ? AppTheme.textHint : AppTheme.errorColor,

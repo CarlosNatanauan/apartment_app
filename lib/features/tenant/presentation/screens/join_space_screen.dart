@@ -43,7 +43,7 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
                 Expanded(
-                  child: Text('Request sent! Waiting for landlord approval.'),
+                  child: Text('Request sent! Waiting for manager approval.'),
                 ),
               ],
             ),
@@ -108,7 +108,7 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Ask your landlord for the join code to request access to their space.',
+                      'Ask your space manager for the join code to request access to their space.',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppTheme.tenantColor,
@@ -152,7 +152,7 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
               decoration: const InputDecoration(
                 hintText: 'ABC123XYZ',
                 prefixIcon: Icon(Icons.vpn_key_outlined),
-                helperText: '6-character code from your landlord',
+                helperText: '6-character code from your space manager',
               ),
               textCapitalization: TextCapitalization.characters,
               inputFormatters: [
@@ -200,7 +200,7 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
             // Help text
             Center(
               child: Text(
-                'Your request will be sent to the landlord for approval',
+                'Your request will be sent to the manager for approval',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),

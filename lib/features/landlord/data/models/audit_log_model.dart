@@ -51,9 +51,9 @@ class AuditLog {
       case 'DELETE_SPACE':
         return 'Space Deleted';
       case 'CREATE_ROOM':
-        return 'Room Created';
+        return 'Unit Created';
       case 'DELETE_ROOM':
-        return 'Room Deleted';
+        return 'Unit Deleted';
       case 'JOIN_REQUEST':
         return 'Join Request';
       case 'APPROVE':
@@ -87,9 +87,9 @@ class AuditLog {
       case 'UPDATE_SPACE':
         return 'Changed from "${meta!['oldName']}" to "${meta!['newName']}"';
       case 'CREATE_ROOM':
-        return 'Room ${meta!['roomNumber']}';
+        return 'Unit ${meta!['roomNumber']}';
       case 'MOVE':
-        return 'Room changed';
+        return 'Unit changed';
       case 'APPROVE':
         return 'Status: ${meta!['from']} → ${meta!['to']}';
       case 'CREATE_SPACE':

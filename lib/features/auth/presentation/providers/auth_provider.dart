@@ -195,6 +195,39 @@ Future<void> register(
     }
   }
 
+  // Google Sign-In
+  Future<void> googleSignIn(String idToken) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      print('🔐 Attempting Google sign-in');
+
+      final user = await _repository.googleSignIn(idToken: idToken);
+
+      print('✅ Google sign-in successful: $user');
+
+      state = state.copyWith(
+        user: user,
+        isLoading: false,
+        isInitialized: true,
+      );
+    } on ApiException catch (e) {
+      print('❌ Google sign-in failed (ApiException): ${e.message}');
+      state = state.copyWith(
+        isLoading: false,
+        error: e.message,
+      );
+      rethrow;
+    } catch (e) {
+      print('❌ Google sign-in failed (Exception): $e');
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractErrorMessage(e),
+      );
+      rethrow;
+    }
+  }
+
   // ✅ NEW: Change password
   Future<void> changePassword(String currentPassword, String newPassword) async {
     try {

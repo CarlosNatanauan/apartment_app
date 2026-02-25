@@ -12,7 +12,7 @@ class MembershipsRepository {
   Future<List<Membership>> getPendingRequests(String spaceId) async {
     try {
       final response = await _apiClient.get(
-        '/spaces/$spaceId/requests',
+        '/spaces/$spaceId/pending',
         fromJson: (data) {
           if (data is List) {
             return data.map((json) => Membership.fromJson(json)).toList();

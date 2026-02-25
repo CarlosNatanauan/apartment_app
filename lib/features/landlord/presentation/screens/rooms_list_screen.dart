@@ -50,7 +50,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Room Number'),
+        title: const Text('Edit Unit Number'),
         content: TextField(
           controller: numberController,
           autofocus: true,
@@ -60,7 +60,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
             LengthLimitingTextInputFormatter(6),
           ],
           decoration: const InputDecoration(
-            labelText: 'Room Number',
+            labelText: 'Unit Number',
             hintText: 'e.g., 101',
             prefixIcon: Icon(Icons.door_front_door_outlined),
           ),
@@ -76,14 +76,14 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
 
               if (number.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please enter a room number')),
+                  const SnackBar(content: Text('Please enter a unit number')),
                 );
                 return;
               }
 
               if (!RegExp(r'^\d+$').hasMatch(number)) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Room number must be numeric')),
+                  const SnackBar(content: Text('Unit number must be numeric')),
                 );
                 return;
               }
@@ -111,7 +111,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                 children: [
                   Icon(Icons.check_circle, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Room number updated'),
+                  Text('Unit number updated'),
                 ],
               ),
               backgroundColor: AppTheme.successColor,
@@ -131,7 +131,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to update room: $e'),
+              content: Text('Failed to update unit: $e'),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -144,12 +144,12 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Room'),
+        title: const Text('Delete Unit'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to delete room $roomNumber?'),
+            Text('Are you sure you want to delete unit $roomNumber?'),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -170,7 +170,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'If this room is occupied, deletion will fail.',
+                      'If this unit is occupied, deletion will fail.',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -209,7 +209,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                 children: [
                   Icon(Icons.check_circle, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Room deleted'),
+                  Text('Unit deleted'),
                 ],
               ),
               backgroundColor: AppTheme.successColor,
@@ -229,7 +229,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to delete room: $e'),
+              content: Text('Failed to delete unit: $e'),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -244,7 +244,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
     final rooms = roomsState.rooms;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Rooms - ${widget.space.name}')),
+      appBar: AppBar(title: Text('Units - ${widget.space.name}')),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: roomsState.isLoading && rooms.isEmpty
@@ -279,7 +279,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                 ),
               )
             : const Icon(Icons.add),
-        label: const Text('Add Room'),
+        label: const Text('Add Unit'),
       ),
     );
   }
@@ -311,12 +311,12 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'No Rooms Yet',
+                      'No Units Yet',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Add rooms to this space to start managing tenants.',
+                      'Add units to this space to start managing tenants.',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -335,7 +335,7 @@ class _RoomsListScreenState extends ConsumerState<RoomsListScreen> {
                               ),
                             )
                           : const Icon(Icons.add),
-                      label: const Text('Add Your First Room'),
+                      label: const Text('Add Your First Unit'),
                     ),
                   ],
                 ),
@@ -387,7 +387,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
 
     if (roomNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a room number')),
+        const SnackBar(content: Text('Please enter a unit number')),
       );
       return;
     }
@@ -404,7 +404,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
         widget.onCreated();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Room $roomNumber created successfully'),
+            content: Text('Unit $roomNumber created successfully'),
             backgroundColor: AppTheme.successColor,
           ),
         );
@@ -422,7 +422,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create room: $e'),
+            content: Text('Failed to create unit: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -463,7 +463,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
     if (end - start > 50) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Maximum 50 rooms at once')));
+      ).showSnackBar(const SnackBar(content: Text('Maximum 50 units at once')));
       return;
     }
 
@@ -484,7 +484,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
         widget.onCreated();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${roomNumbers.length} rooms created successfully'),
+            content: Text('${roomNumbers.length} units created successfully'),
             backgroundColor: AppTheme.successColor,
           ),
         );
@@ -502,7 +502,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create rooms: $e'),
+            content: Text('Failed to create units: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -515,7 +515,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add Room'),
+      title: const Text('Add Unit'),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -549,7 +549,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
                           LengthLimitingTextInputFormatter(6),
                         ],
                         decoration: const InputDecoration(
-                          labelText: 'Room Number',
+                          labelText: 'Unit Number',
                           hintText: 'e.g., 101',
                           prefixIcon: Icon(Icons.door_front_door_outlined),
                         ),
@@ -588,7 +588,7 @@ class _CreateRoomDialogState extends ConsumerState<_CreateRoomDialog>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Will create rooms from start to end (max 50)',
+                        'Will create units from start to end (max 50)',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

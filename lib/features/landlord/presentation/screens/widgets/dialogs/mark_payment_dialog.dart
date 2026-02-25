@@ -155,7 +155,7 @@ class _MarkPaymentDialogState extends ConsumerState<MarkPaymentDialog> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Room ${widget.roomNumber}',
+                          'Unit ${widget.roomNumber}',
                           style: const TextStyle(
                             fontSize: 13,
                             color: AppTheme.textSecondary,

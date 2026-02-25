@@ -95,7 +95,7 @@ class _RequestRoomDialogState extends ConsumerState<RequestRoomDialog> {
     if (_selectedRoomId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a room'),
+          content: Text('Please select a unit'),
           backgroundColor: AppTheme.warningColor,
         ),
       );
@@ -111,7 +111,7 @@ class _RequestRoomDialogState extends ConsumerState<RequestRoomDialog> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Request Another Room'),
+          const Text('Request Another Unit'),
           const SizedBox(height: 4),
           Text(
             widget.spaceName,
@@ -171,14 +171,14 @@ class _RequestRoomDialogState extends ConsumerState<RequestRoomDialog> {
                               ),
                               const SizedBox(height: 16),
                               const Text(
-                                'No available rooms',
+                                'No available units',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'You have already requested or occupy all rooms in this space.',
+                                'You have already requested or occupy all units in this space.',
                                 textAlign: TextAlign.center,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
@@ -238,7 +238,7 @@ class _RequestRoomDialogState extends ConsumerState<RequestRoomDialog> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Room ${room.roomNumber}',
+                                            'Unit ${room.roomNumber}',
                                             style: TextStyle(
                                               fontWeight: FontWeight.w600,
                                               color: isOccupied

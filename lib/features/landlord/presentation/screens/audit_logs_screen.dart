@@ -122,7 +122,7 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                   children: [
                     Icon(Icons.door_front_door_outlined, size: 20, color: Color(0xFF8B5CF6)),
                     SizedBox(width: 12),
-                    Text('Room Actions'),
+                    Text('Unit Actions'),
                   ],
                 ),
               ),

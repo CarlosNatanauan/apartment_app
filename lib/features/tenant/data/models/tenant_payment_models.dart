@@ -24,20 +24,25 @@ class MonthlyPayment {
     required this.paymentDueDay,
   });
 
-  factory MonthlyPayment.fromJson(Map<String, dynamic> json) {
+  factory MonthlyPayment.fromJson(
+    Map<String, dynamic> json, {
+    required int year,
+    required int month,
+  }) {
+    final payment = json['payment'] as Map<String, dynamic>?;
+    final isPaid = payment != null && payment['paidAt'] != null;
+
     return MonthlyPayment(
       leaseId: json['leaseId'] as String,
       roomNumber: json['roomNumber']?.toString() ?? 'N/A',
       spaceName: json['spaceName'] as String? ?? 'Space',
-      monthlyRent: json['monthlyRent'] as int,
-      year: json['year'] as int,
-      month: json['month'] as int,
-      isPaid: json['isPaid'] as bool? ?? false,
-      paidAt: json['paidAt'] != null
-          ? DateTime.parse(json['paidAt'] as String)
-          : null,
+      monthlyRent: json['monthlyRent'] as int? ?? 0,
+      year: year,
+      month: month,
+      isPaid: isPaid,
+      paidAt: isPaid ? DateTime.parse(payment['paidAt'] as String) : null,
       note: json['note'] as String?,
-      paymentDueDay: json['paymentDueDay'] as int,
+      paymentDueDay: json['paymentDueDay'] as int? ?? 1,
     );
   }
 

@@ -492,7 +492,7 @@ class _LeasePaymentItem extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Room ${lease.room?.roomNumber ?? 'N/A'}',
+                  'Unit ${lease.room?.roomNumber ?? 'N/A'}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -697,7 +697,7 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
             ),
           ),
           Text(
-            'Room ${widget.lease.room?.roomNumber ?? 'N/A'}',
+            'Unit ${widget.lease.room?.roomNumber ?? 'N/A'}',
             style: const TextStyle(
               fontSize: 14,
               color: AppTheme.textSecondary,

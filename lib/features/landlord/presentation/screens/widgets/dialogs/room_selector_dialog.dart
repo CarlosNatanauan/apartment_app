@@ -9,7 +9,7 @@ class RoomSelectorDialog extends StatefulWidget {
   const RoomSelectorDialog({
     super.key,
     required this.availableRooms,
-    this.title = 'Select Room',
+    this.title = 'Select Unit',
   });
 
   @override
@@ -41,7 +41,7 @@ class _RoomSelectorDialogState extends State<RoomSelectorDialog> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'No Available Rooms',
+              'No Available Units',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -50,7 +50,7 @@ class _RoomSelectorDialogState extends State<RoomSelectorDialog> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'All rooms in this space are currently occupied. Please add more rooms or wait for a room to become available.',
+              'All units in this space are currently occupied. Please add more units or wait for a unit to become available.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.textSecondary),
             ),
@@ -75,7 +75,7 @@ class _RoomSelectorDialogState extends State<RoomSelectorDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Select an available room to assign:',
+              'Select an available unit to assign:',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -181,7 +181,7 @@ class _RoomSelectorDialogState extends State<RoomSelectorDialog> {
           onPressed: _selectedRoomId == null
               ? null
               : () => Navigator.pop(context, _selectedRoomId),
-          child: const Text('Assign Room'),
+          child: const Text('Assign Unit'),
         ),
       ],
     );

@@ -84,7 +84,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
               children: [
                 Icon(Icons.check_circle, color: Colors.white, size: 20),
                 SizedBox(width: 8),
-                Text('Room request submitted successfully'),
+                Text('Unit request submitted successfully'),
               ],
             ),
             backgroundColor: AppTheme.successColor,
@@ -95,7 +95,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to request room: $e'),
+            content: Text('Failed to request unit: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -114,12 +114,12 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Leave Room'),
+        title: const Text('Leave Unit'),
         content: Text(
-          'Are you sure you want to leave Room $roomNumber?\n\n'
-          '${widget.membership.activeRoomCount > 1 
-              ? 'You will still have access to your other rooms in this space.' 
-              : 'This is your only room. Leaving it will remove you from the space entirely.'}'
+          'Are you sure you want to leave Unit $roomNumber?\n\n'
+          '${widget.membership.activeRoomCount > 1
+              ? 'You will still have access to your other units in this space.'
+              : 'This is your only unit. Leaving it will remove you from the space entirely.'}'
         ),
         actions: [
           TextButton(
@@ -131,7 +131,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('Leave Room'),
+            child: const Text('Leave Unit'),
           ),
         ],
       ),
@@ -155,7 +155,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text('Left Room $roomNumber successfully'),
+                  child: Text('Left Unit $roomNumber successfully'),
                 ),
               ],
             ),
@@ -167,7 +167,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to leave room: $e'),
+            content: Text('Failed to leave unit: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -281,7 +281,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${membership.activeRoomCount} Active Room${membership.activeRoomCount > 1 ? 's' : ''}',
+                            '${membership.activeRoomCount} Active Unit${membership.activeRoomCount > 1 ? 's' : ''}',
                             style: const TextStyle(
                               color: AppTheme.tenantColor,
                               fontSize: 13,
@@ -355,7 +355,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                     children: [
                       // Active Leases
                       if (membership.activeLeases.isNotEmpty) ...[
-                        _buildSectionHeader('Active Rooms', Icons.check_circle),
+                        _buildSectionHeader('Active Units', Icons.check_circle),
                         const SizedBox(height: 8),
                         ...membership.activeLeases.map((lease) => _buildLeaseItem(lease, true)),
                       ],
@@ -504,7 +504,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
                             : const Icon(Icons.add_home, size: 18),
-                        label: const Text('Request Room'),
+                        label: const Text('Request Unit'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.tenantColor,
                           side: const BorderSide(color: AppTheme.tenantColor),
@@ -592,7 +592,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Room ${lease.roomNumber ?? 'N/A'}',
+                  'Unit ${lease.roomNumber ?? 'N/A'}',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -672,7 +672,7 @@ class _TenantMembershipCardState extends ConsumerState<TenantMembershipCard> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.exit_to_app, size: 14),
-                  label: const Text('Leave Room', style: TextStyle(fontSize: 12)),
+                  label: const Text('Leave Unit', style: TextStyle(fontSize: 12)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppTheme.errorColor,
                     side: const BorderSide(color: AppTheme.errorColor),

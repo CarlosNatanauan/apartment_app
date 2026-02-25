@@ -249,7 +249,7 @@ class _LandlordMaintenanceDetailsScreenState
                             const Icon(Icons.location_on_outlined, size: 16),
                             const SizedBox(width: 4),
                             Text(
-                              'Room ${request.roomNumber}',
+                              'Unit ${request.roomNumber}',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],

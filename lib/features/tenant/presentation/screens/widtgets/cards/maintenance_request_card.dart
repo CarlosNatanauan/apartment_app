@@ -148,7 +148,7 @@ class MaintenanceRequestCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '${request.spaceName} - Room ${request.roomNumber}',
+                      '${request.spaceName} - Unit ${request.roomNumber}',
                       style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

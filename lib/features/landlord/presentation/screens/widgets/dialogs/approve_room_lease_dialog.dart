@@ -74,10 +74,10 @@ class _ApproveRoomLeaseDialogState extends State<ApproveRoomLeaseDialog> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Approve Room Lease'),
+          const Text('Approve Unit Lease'),
           const SizedBox(height: 4),
           Text(
-            '${widget.tenantName} • Room ${widget.roomNumber}',
+            '${widget.tenantName} • Unit ${widget.roomNumber}',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: AppTheme.textSecondary,
                 ),
@@ -195,7 +195,7 @@ class _ApproveRoomLeaseDialogState extends State<ApproveRoomLeaseDialog> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '• ${widget.tenantName} will occupy Room ${widget.roomNumber}',
+                      '• ${widget.tenantName} will occupy Unit ${widget.roomNumber}',
                       style: const TextStyle(fontSize: 12),
                     ),
                     Text(

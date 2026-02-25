@@ -75,7 +75,7 @@ class _TenantPaymentHistoryScreenState
           children: [
             const Text('Payment History'),
             Text(
-              'Room ${widget.roomNumber}',
+              'Unit ${widget.roomNumber}',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textSecondary,
@@ -274,7 +274,7 @@ class _TenantPaymentHistoryScreenState
                   Row(
                     children: [
                       Text(
-                        'Room ${widget.roomNumber}',
+                        'Unit ${widget.roomNumber}',
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppTheme.textSecondary,

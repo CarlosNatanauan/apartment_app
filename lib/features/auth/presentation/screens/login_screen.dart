@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../providers/auth_provider.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -82,6 +84,41 @@ Widget _buildErrorText(String error) {
   );
 }
 
+Future<void> _handleGoogleSignIn() async {
+  ref.read(authProvider.notifier).clearError();
+
+  try {
+    // Force account chooser every time
+    await GoogleSignIn.instance.signOut();
+    final account = await GoogleSignIn.instance.authenticate();
+
+    final idToken = account.authentication.idToken;
+
+    if (idToken == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in failed: no ID token received')),
+        );
+      }
+      return;
+    }
+
+    await ref.read(authProvider.notifier).googleSignIn(idToken);
+    // Success — router redirects automatically
+  } catch (e) {
+    // googleSignIn() sets error on authProvider state for backend errors.
+    // For Google-side errors (account picker cancelled, no token, etc.),
+    // show directly.
+    final msg = e.toString();
+    final isBackendError = ref.read(authProvider).error != null;
+    if (!isBackendError && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Google sign-in error: $msg')),
+      );
+    }
+  }
+}
+
 Future<void> _handleLogin() async {
   if (!_formKey.currentState!.validate()) return;
 
@@ -135,7 +172,7 @@ Future<void> _handleLogin() async {
                 children: [
                   // Logo/Icon
                   Icon(
-                    Icons.apartment,
+                    Icons.domain,
                     size: 80,
                     color: Theme.of(context).colorScheme.primary,
                   ),
@@ -151,7 +188,7 @@ Future<void> _handleLogin() async {
 
                   // Subtitle
                   Text(
-                    'Login to manage your apartment',
+                    'Login to manage your spaces',
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
@@ -293,6 +330,39 @@ AnimatedSwitcher(
                               ),
                             )
                           : const Text('Login'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          'or',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Google Sign-In Button
+                  SizedBox(
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: authState.isLoading ? null : _handleGoogleSignIn,
+                      icon: Image.network(
+                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                        height: 20,
+                        width: 20,
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.g_mobiledata, size: 22),
+                      ),
+                      label: const Text('Continue with Google'),
                     ),
                   ),
                   const SizedBox(height: 16),

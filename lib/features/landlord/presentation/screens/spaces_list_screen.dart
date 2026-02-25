@@ -46,7 +46,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
               autofocus: true,
               decoration: const InputDecoration(
                 labelText: 'Space Name',
-                hintText: 'e.g., Sunset Apartments',
+                hintText: 'e.g., Sunset Food Park',
                 prefixIcon: Icon(Icons.business),
               ),
               textCapitalization: TextCapitalization.words,
@@ -239,7 +239,7 @@ class _SpacesListScreenState extends ConsumerState<SpacesListScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Create your first space to start managing your apartment building.',
+                      'Create your first space to start managing your property.',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),

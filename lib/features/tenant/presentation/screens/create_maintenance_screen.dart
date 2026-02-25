@@ -91,7 +91,7 @@ class _CreateMaintenanceScreenState
             _RoomOption(
               roomId: lease.roomId!,
               label:
-                  '${m.spaceName ?? 'Space'} - Room ${lease.roomNumber ?? 'N/A'}',
+                  '${m.spaceName ?? 'Space'} - Unit ${lease.roomNumber ?? 'N/A'}',
             ),
           );
         }
@@ -99,7 +99,7 @@ class _CreateMaintenanceScreenState
 
       if (activeRoomOptions.isEmpty) {
         throw Exception(
-          'You must have an active room lease to create a maintenance request.',
+          'You must have an active unit lease to create a maintenance request.',
         );
       }
 
@@ -107,7 +107,7 @@ class _CreateMaintenanceScreenState
           ? activeRoomOptions.first.roomId
           : activeRoomOptions.firstWhere(
               (o) => o.roomId == _selectedRoomId,
-              orElse: () => throw Exception('Please select a room'),
+              orElse: () => throw Exception('Please select a unit'),
             ).roomId;
 
       File? imageFile;
@@ -185,7 +185,7 @@ class _CreateMaintenanceScreenState
         activeRoomOptions.add(
           _RoomOption(
             roomId: lease.roomId!,
-            label: '${m.spaceName ?? 'Space'} - Room ${lease.roomNumber ?? 'N/A'}',
+            label: '${m.spaceName ?? 'Space'} - Unit ${lease.roomNumber ?? 'N/A'}',
           ),
         );
       }
@@ -211,11 +211,11 @@ class _CreateMaintenanceScreenState
                 Icon(Icons.warning_outlined,
                     size: 64, color: AppTheme.warningColor),
                 const SizedBox(height: 16),
-                Text('No Active Rooms',
+                Text('No Active Units',
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Text(
-                  'You must have an active room lease to create a maintenance request.',
+                  'You must have an active unit lease to create a maintenance request.',
                   style: Theme.of(context).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -241,7 +241,7 @@ class _CreateMaintenanceScreenState
             // ✅ Room selector only if multiple active rooms
             if (activeRoomOptions.length > 1) ...[
               Text(
-                'Which room is this for?',
+                'Which unit is this for?',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -251,7 +251,7 @@ class _CreateMaintenanceScreenState
                 value: _selectedRoomId,
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.meeting_room_outlined),
-                  hintText: 'Select room',
+                  hintText: 'Select unit',
                 ),
                 items: activeRoomOptions.map((o) {
                   return DropdownMenuItem(
@@ -264,7 +264,7 @@ class _CreateMaintenanceScreenState
                     : (value) => setState(() => _selectedRoomId = value),
                 validator: (value) {
                   if (activeRoomOptions.length > 1 && value == null) {
-                    return 'Please select a room';
+                    return 'Please select a unit';
                   }
                   return null;
                 },

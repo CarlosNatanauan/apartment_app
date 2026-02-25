@@ -61,8 +61,8 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
           SnackBar(
             content: Text(
               totalRooms == 0
-                  ? 'No rooms created. Please create rooms first.'
-                  : 'All $totalRooms rooms are occupied ($occupiedRooms/$totalRooms). Cannot approve new member.',
+                  ? 'No units created. Please create units first.'
+                  : 'All $totalRooms units are occupied ($occupiedRooms/$totalRooms). Cannot approve new member.',
             ),
             backgroundColor: AppTheme.warningColor,
             duration: const Duration(seconds: 4),
@@ -101,7 +101,7 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '$displayName approved and assigned to room',
+                    '$displayName approved and assigned to unit',
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

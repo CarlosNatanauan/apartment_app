@@ -36,14 +36,14 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
     if (activeRoomCount > 1) {
       warningMessage = 
           'Are you sure you want to leave "$spaceName"?\n\n'
-          'You currently have $activeRoomCount active rooms:\n'
-          '${membership.activeLeases.map((l) => '  • Room ${l.roomNumber}').join('\n')}\n\n'
-          'Leaving the space will end ALL your room leases.\n\n'
-          'Tip: If you only want to leave one room, expand the card and tap "Leave Room" on that specific room.';
+          'You currently have $activeRoomCount active units:\n'
+          '${membership.activeLeases.map((l) => '  • Unit ${l.roomNumber}').join('\n')}\n\n'
+          'Leaving the space will end ALL your unit leases.\n\n'
+          'Tip: If you only want to leave one unit, expand the card and tap "Leave Unit" on that specific unit.';
     } else if (activeRoomCount == 1) {
       warningMessage = 
           'Are you sure you want to leave "$spaceName"?\n\n'
-          'This will end your lease for Room ${membership.activeLeases.first.roomNumber}.';
+          'This will end your lease for Unit ${membership.activeLeases.first.roomNumber}.';
     } else {
       warningMessage = 
           'Are you sure you want to leave "$spaceName"?\n\n'
@@ -65,7 +65,7 @@ class _MyMembershipsScreenState extends ConsumerState<MyMembershipsScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: Text(activeRoomCount > 1 ? 'Leave All Rooms' : 'Leave Space'),
+            child: Text(activeRoomCount > 1 ? 'Leave All Units' : 'Leave Space'),
           ),
         ],
       ),

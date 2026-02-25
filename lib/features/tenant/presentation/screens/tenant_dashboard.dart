@@ -1,3 +1,4 @@
+import 'package:apartment_app/features/tenant/presentation/provider/tenant_memberships_provider.dart';
 import 'package:apartment_app/features/tenant/presentation/provider/tenant_notices_provider.dart';
 import 'package:apartment_app/features/tenant/presentation/provider/tenant_payments_provider.dart';
 import 'package:apartment_app/features/tenant/presentation/screens/widtgets/tenant_announcements_section.dart';
@@ -23,11 +24,14 @@ class _TenantDashboardState extends ConsumerState<TenantDashboard> {
     });
   }
 
-  void _loadDashboardData() {
-    // Load announcements from all spaces
+  Future<void> _loadDashboardData() async {
+    // Notices depend on memberships — ensure they are loaded first
+    final membershipsState = ref.read(tenantMembershipsProvider);
+    if (membershipsState.memberships.isEmpty) {
+      await ref.read(tenantMembershipsProvider.notifier).loadMemberships();
+    }
+
     ref.read(tenantNoticesProvider.notifier).loadAllNotices();
-    
-    // Load current month's payments
     ref.read(tenantPaymentsProvider.notifier).loadPayments();
   }
 

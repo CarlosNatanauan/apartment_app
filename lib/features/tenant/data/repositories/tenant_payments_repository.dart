@@ -20,7 +20,11 @@ class TenantPaymentsRepository {
         fromJson: (data) {
           if (data is List) {
             return data
-                .map((json) => MonthlyPayment.fromJson(json as Map<String, dynamic>))
+                .map((json) => MonthlyPayment.fromJson(
+                      json as Map<String, dynamic>,
+                      year: year,
+                      month: month,
+                    ))
                 .toList();
           }
           return <MonthlyPayment>[];
