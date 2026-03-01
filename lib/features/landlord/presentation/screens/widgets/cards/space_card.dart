@@ -43,24 +43,31 @@ class SpaceCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header row with icon and name
-              Row(
+        child: Column(
+          children: [
+            // Gradient header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppTheme.landlordColor.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.business,
-                      color: AppTheme.landlordColor,
-                      size: 24,
+                      color: Colors.white,
+                      size: 22,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -70,77 +77,91 @@ class SpaceCard extends StatelessWidget {
                       children: [
                         Text(
                           space.name,
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-
+                        if (space.createdAt != null)
+                          Text(
+                            'Created ${_formatDate(space.createdAt!)}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.75),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                   const Icon(
-                    Icons.chevron_right,
-                    color: AppTheme.textHint,
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: 14,
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 16),
-              const Divider(height: 1),
-              const SizedBox(height: 16),
-              
-              // Join code row
-              Row(
+            ),
+
+            // Footer: join code + copy
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
                 children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.borderColor),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.vpn_key_outlined,
-                            size: 16,
-                            color: AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Code: ',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          Text(
-                            space.joinCode,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Courier',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                  const Icon(
+                    Icons.vpn_key_outlined,
+                    size: 14,
+                    color: AppTheme.textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Join Code',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                   ),
                   const SizedBox(width: 8),
-                  // Copy button
-                  IconButton(
-                    onPressed: () => _copyJoinCode(context),
-                    icon: const Icon(Icons.copy, size: 20),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppTheme.landlordColor.withOpacity(0.1),
-                      foregroundColor: AppTheme.landlordColor,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.landlordColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppTheme.landlordColor.withValues(alpha: 0.2),
+                      ),
                     ),
-                    tooltip: 'Copy join code',
+                    child: Text(
+                      space.joinCode,
+                      style: const TextStyle(
+                        fontFamily: 'Courier',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: AppTheme.landlordColor,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  InkWell(
+                    onTap: () => _copyJoinCode(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.landlordColor.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.copy_outlined,
+                        size: 16,
+                        color: AppTheme.landlordColor,
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

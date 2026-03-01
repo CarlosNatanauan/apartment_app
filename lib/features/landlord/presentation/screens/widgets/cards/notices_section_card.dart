@@ -22,7 +22,6 @@ class NoticesSectionCard extends ConsumerWidget {
     final isLoading = noticesState.isLoading;
     final activeNotices = noticesState.activeNotices;
 
-    // Show loading state
     if (isLoading && activeNotices.isEmpty) {
       return const Card(
         child: Padding(
@@ -32,123 +31,176 @@ class NoticesSectionCard extends ConsumerWidget {
       );
     }
 
-    // Show latest 3 notices
     final displayNotices = activeNotices.take(3).toList();
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gradient header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
               children: [
-                const Icon(Icons.campaign, color: AppTheme.landlordColor),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.campaign, color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    'Announcements${activeNotices.isEmpty ? '' : ' (${activeNotices.length})'}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Row(
+                    children: [
+                      const Text(
+                        'Announcements',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (activeNotices.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${activeNotices.length}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
-                // New Announcement button
-                ElevatedButton.icon(
-                  onPressed: () => _showCreateDialog(context, ref),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.landlordColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    minimumSize: const Size(0, 0),
-                  ),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text(
-                    'New',
-                    style: TextStyle(fontSize: 13),
+                // New announcement button
+                InkWell(
+                  onTap: () => _showCreateDialog(context, ref),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, color: Colors.white, size: 15),
+                        SizedBox(width: 4),
+                        Text(
+                          'New',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-            
-            const SizedBox(height: 12),
-            
-            // Notices list or empty state
-            if (displayNotices.isEmpty)
-              _buildEmptyState(context)
-            else ...[
-              ...displayNotices.map((notice) => NoticeItemCard(
-                notice: notice,
-                onDelete: () => _confirmDelete(context, ref, notice),
-              )),
-              
-              // View All button if more than 3
-              if (activeNotices.length > 3)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        // TODO: Navigate to full notices list screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Full notices screen coming soon!'),
+          ),
+
+          // Body
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: displayNotices.isEmpty
+                ? _buildEmptyState(context)
+                : Column(
+                    children: [
+                      ...displayNotices.map((notice) => NoticeItemCard(
+                            notice: notice,
+                            onDelete: () =>
+                                _confirmDelete(context, ref, notice),
+                          )),
+                      if (activeNotices.length > 3)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Full notices screen coming soon!'),
+                                ),
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.landlordColor,
+                              side: const BorderSide(
+                                  color: AppTheme.landlordColor),
+                            ),
+                            icon: const Icon(Icons.list, size: 18),
+                            label: Text(
+                              'View All (${activeNotices.length})',
+                              style: const TextStyle(fontSize: 13),
+                            ),
                           ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.landlordColor,
-                        side: const BorderSide(color: AppTheme.landlordColor),
-                      ),
-                      icon: const Icon(Icons.list, size: 18),
-                      label: Text(
-                        'View All Announcements (${activeNotices.length})',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ),
+                        ),
+                    ],
                   ),
-                ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       decoration: BoxDecoration(
-        color: AppTheme.textHint.withOpacity(0.05),
+        color: AppTheme.textHint.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: AppTheme.textHint.withOpacity(0.2),
+          color: AppTheme.textHint.withValues(alpha: 0.15),
         ),
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.campaign_outlined,
-            size: 48,
-            color: AppTheme.textHint.withOpacity(0.5),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.landlordColor.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.campaign_outlined,
+              size: 28,
+              color: AppTheme.landlordColor,
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           const Text(
             'No announcements yet',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'Post announcements to notify all tenants',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -157,15 +209,14 @@ class NoticesSectionCard extends ConsumerWidget {
   }
 
   void _showCreateDialog(BuildContext context, WidgetRef ref) async {
-    final result = await showCreateNoticeDialog(
+    await showCreateNoticeDialog(
       context: context,
       spaceId: spaceId,
     );
-    
-    // Dialog handles refresh via provider
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref, SpaceNotice notice) {
+  void _confirmDelete(
+      BuildContext context, WidgetRef ref, SpaceNotice notice) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -176,9 +227,7 @@ class NoticesSectionCard extends ConsumerWidget {
           children: [
             Text(
               notice.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -198,13 +247,11 @@ class NoticesSectionCard extends ConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              
               try {
                 await ref.read(noticesProvider.notifier).deleteNotice(
-                  spaceId: spaceId,
-                  noticeId: notice.noticeId,
-                );
-                
+                      spaceId: spaceId,
+                      noticeId: notice.noticeId,
+                    );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

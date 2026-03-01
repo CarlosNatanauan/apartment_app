@@ -16,14 +16,14 @@ class PaymentDetailsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PaymentDetailsScreen> createState() => _PaymentDetailsScreenState();
+  ConsumerState<PaymentDetailsScreen> createState() =>
+      _PaymentDetailsScreenState();
 }
 
 class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Load payment data when screen opens
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(paymentsProvider.notifier).loadSummary(widget.spaceId);
     });
@@ -33,7 +33,8 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
     await ref.read(paymentsProvider.notifier).loadSummary(widget.spaceId);
   }
 
-  void _showMarkPaidDialog(BuildContext context, LeasePayment lease, TenantInfo tenant) {
+  void _showMarkPaidDialog(
+      BuildContext context, LeasePayment lease, TenantInfo tenant) {
     showDialog(
       context: context,
       builder: (context) => _MarkPaymentDialog(
@@ -67,13 +68,14 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
           ],
         ),
         actions: [
-          // Month navigation
           if (summary != null) ...[
             IconButton(
               icon: const Icon(Icons.chevron_left),
               onPressed: () {
                 ref.read(paymentsProvider.notifier).previousMonth();
-                ref.read(paymentsProvider.notifier).loadSummary(widget.spaceId);
+                ref
+                    .read(paymentsProvider.notifier)
+                    .loadSummary(widget.spaceId);
               },
             ),
             Padding(
@@ -82,7 +84,9 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
                 child: TextButton(
                   onPressed: () {
                     ref.read(paymentsProvider.notifier).goToCurrentMonth();
-                    ref.read(paymentsProvider.notifier).loadSummary(widget.spaceId);
+                    ref
+                        .read(paymentsProvider.notifier)
+                        .loadSummary(widget.spaceId);
                   },
                   child: Text(summary.periodLabel),
                 ),
@@ -92,7 +96,9 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
               icon: const Icon(Icons.chevron_right),
               onPressed: () {
                 ref.read(paymentsProvider.notifier).nextMonth();
-                ref.read(paymentsProvider.notifier).loadSummary(widget.spaceId);
+                ref
+                    .read(paymentsProvider.notifier)
+                    .loadSummary(widget.spaceId);
               },
             ),
           ],
@@ -120,18 +126,22 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.payments_outlined,
-                    size: 64,
-                    color: AppTheme.textHint.withOpacity(0.5),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppTheme.landlordColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.payments_outlined,
+                      size: 48,
+                      color: AppTheme.landlordColor,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   const Text(
                     'No payment data',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -155,113 +165,143 @@ class _PaymentDetailsScreenState extends ConsumerState<PaymentDetailsScreen> {
     return ListView(
       padding: const EdgeInsets.only(bottom: 80),
       children: [
-        // Summary header
         _buildSummaryHeader(summary),
-        
         const SizedBox(height: 8),
-        
-        // Tenant payments
         ...summary.tenants.map((tenantPayment) => _TenantPaymentCard(
-          tenantPayment: tenantPayment,
-          onMarkPaid: (lease) => _showMarkPaidDialog(context, lease, tenantPayment.tenant),
-        )),
+              tenantPayment: tenantPayment,
+              onMarkPaid: (lease) =>
+                  _showMarkPaidDialog(context, lease, tenantPayment.tenant),
+            )),
       ],
     );
   }
 
   Widget _buildSummaryHeader(PaymentSummary summary) {
     return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Progress bar
-            Row(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        children: [
+          // Gradient header
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+              ),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.payments,
+                      color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: summary.percentPaid / 100,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation(
-                        summary.hasOverdue ? AppTheme.warningColor : AppTheme.successColor,
+                  child: Text(
+                    summary.periodLabel,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                if (summary.hasOverdue)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${summary.overdueCount} Overdue',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  '${summary.percentPaid.toStringAsFixed(0)}%',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
               ],
             ),
-            
-            const SizedBox(height: 16),
-            
-            // Stats
-            Row(
+          ),
+
+          // Stats body
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
               children: [
-                Expanded(
-                  child: _StatItem(
-                    label: 'Expected',
-                    value: CurrencyFormatter.formatCents(summary.totalExpected),
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                Expanded(
-                  child: _StatItem(
-                    label: 'Paid',
-                    value: CurrencyFormatter.formatCents(summary.totalPaid),
-                    color: AppTheme.successColor,
-                  ),
-                ),
-                Expanded(
-                  child: _StatItem(
-                    label: 'Unpaid',
-                    value: CurrencyFormatter.formatCents(summary.totalUnpaid),
-                    color: AppTheme.errorColor,
-                  ),
-                ),
-              ],
-            ),
-            
-            if (summary.hasOverdue) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                Row(
                   children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      color: AppTheme.errorColor,
-                      size: 20,
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: summary.percentPaid / 100,
+                          minHeight: 8,
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation(
+                            summary.hasOverdue
+                                ? AppTheme.warningColor
+                                : AppTheme.successColor,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Text(
-                      '${summary.overdueCount} payment${summary.overdueCount == 1 ? '' : 's'} overdue',
+                      '${summary.percentPaid.toStringAsFixed(0)}%',
                       style: const TextStyle(
-                        color: AppTheme.errorColor,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ],
-        ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Expected',
+                        value: CurrencyFormatter.formatCents(
+                            summary.totalExpected),
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Paid',
+                        value: CurrencyFormatter.formatCents(
+                            summary.totalPaid),
+                        color: AppTheme.successColor,
+                      ),
+                    ),
+                    Expanded(
+                      child: _StatItem(
+                        label: 'Unpaid',
+                        value: CurrencyFormatter.formatCents(
+                            summary.totalUnpaid),
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -315,27 +355,35 @@ class _TenantPaymentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Tenant header
-            Row(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gradient header with tenant info
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+              ),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.tenantColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.person,
-                    color: AppTheme.tenantColor,
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.person,
+                      color: Colors.white, size: 18),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,38 +392,44 @@ class _TenantPaymentCard extends StatelessWidget {
                         tenantPayment.tenant.fullName,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 15,
+                          color: Colors.white,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         tenantPayment.tenant.email,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.75),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                // Status badges
                 if (tenantPayment.isFullyPaid)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.successColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: AppTheme.successColor, size: 14),
+                        Icon(Icons.check_circle,
+                            color: Colors.white, size: 12),
                         SizedBox(width: 4),
                         Text(
                           'Paid',
                           style: TextStyle(
-                            color: AppTheme.successColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -383,56 +437,61 @@ class _TenantPaymentCard extends StatelessWidget {
                   )
                 else if (tenantPayment.hasOverdue)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppTheme.errorColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '${tenantPayment.overdueCount} Overdue',
                       style: const TextStyle(
-                        color: AppTheme.errorColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
               ],
             ),
-            
-            const SizedBox(height: 16),
-            
-            // Room leases
-            ...tenantPayment.roomLeases.map((lease) => _LeasePaymentItem(
-              lease: lease,
-              onMarkPaid: () => onMarkPaid(lease),
-            )),
-            
-            // Total for tenant
-            if (tenantPayment.roomLeases.length > 1) ...[
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    CurrencyFormatter.formatCents(tenantPayment.totalRent),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+          ),
+
+          // Lease items
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                ...tenantPayment.roomLeases.map((lease) => _LeasePaymentItem(
+                      lease: lease,
+                      onMarkPaid: () => onMarkPaid(lease),
+                    )),
+                if (tenantPayment.roomLeases.length > 1) ...[
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        CurrencyFormatter.formatCents(
+                            tenantPayment.totalRent),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -451,11 +510,11 @@ class _LeasePaymentItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isPaid = lease.isPaid;
     final isOverdue = lease.isOverdue;
-    
+
     Color statusColor;
     IconData statusIcon;
     String statusText;
-    
+
     if (isPaid) {
       statusColor = AppTheme.successColor;
       statusIcon = Icons.check_circle;
@@ -469,46 +528,56 @@ class _LeasePaymentItem extends StatelessWidget {
       statusIcon = Icons.pending;
       statusText = 'Unpaid';
     }
-    
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: statusColor.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8),
+          color: statusColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: statusColor.withOpacity(0.3),
+            color: statusColor.withValues(alpha: 0.2),
           ),
         ),
         child: Column(
           children: [
+            // Unit + status row
             Row(
               children: [
-                Icon(
-                  Icons.door_front_door_outlined,
-                  size: 16,
-                  color: statusColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Unit ${lease.room?.roomNumber ?? 'N/A'}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.door_front_door_outlined,
+                    size: 16,
+                    color: statusColor,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Unit ${lease.room?.roomNumber ?? 'N/A'}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(statusIcon, size: 12, color: statusColor),
+                      Icon(statusIcon, size: 11, color: statusColor),
                       const SizedBox(width: 4),
                       Text(
                         statusText,
@@ -523,9 +592,10 @@ class _LeasePaymentItem extends StatelessWidget {
                 ),
               ],
             ),
-            
-            const SizedBox(height: 8),
-            
+
+            const SizedBox(height: 10),
+
+            // Rent + mark paid
             Row(
               children: [
                 Expanded(
@@ -535,9 +605,12 @@ class _LeasePaymentItem extends StatelessWidget {
                       if (lease.hasRentInfo) ...[
                         Text(
                           CurrencyFormatter.formatCents(lease.monthlyRent!),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: isPaid
+                                ? AppTheme.successColor
+                                : AppTheme.textPrimary,
                           ),
                         ),
                         Text(
@@ -548,7 +621,6 @@ class _LeasePaymentItem extends StatelessWidget {
                           ),
                         ),
                       ],
-                      
                       if (isPaid && lease.payment != null) ...[
                         const SizedBox(height: 4),
                         Text(
@@ -573,13 +645,13 @@ class _LeasePaymentItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                
                 if (!isPaid)
                   ElevatedButton(
                     onPressed: onMarkPaid,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.successColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       minimumSize: const Size(0, 0),
                     ),
                     child: const Text(
@@ -598,16 +670,22 @@ class _LeasePaymentItem extends StatelessWidget {
   String _getDaySuffix(int day) {
     if (day >= 11 && day <= 13) return 'th';
     switch (day % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
     }
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
     return '${months[date.month - 1]} ${date.day}';
   }
 }
@@ -624,7 +702,8 @@ class _MarkPaymentDialog extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<_MarkPaymentDialog> createState() => _MarkPaymentDialogState();
+  ConsumerState<_MarkPaymentDialog> createState() =>
+      _MarkPaymentDialogState();
 }
 
 class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
@@ -642,14 +721,16 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
 
     try {
       final paymentsState = ref.read(paymentsProvider);
-      
+
       await ref.read(paymentsProvider.notifier).markPaid(
-        spaceId: widget.spaceId,
-        leaseId: widget.lease.leaseId,
-        year: paymentsState.currentYear,
-        month: paymentsState.currentMonth,
-        note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
-      );
+            spaceId: widget.spaceId,
+            leaseId: widget.lease.leaseId,
+            year: paymentsState.currentYear,
+            month: paymentsState.currentMonth,
+            note: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+          );
 
       if (mounted) {
         Navigator.pop(context);
@@ -668,7 +749,7 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
       }
     } catch (e) {
       setState(() => _isSubmitting = false);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -688,7 +769,6 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tenant info
           Text(
             widget.tenant.fullName,
             style: const TextStyle(
@@ -703,10 +783,7 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
               color: AppTheme.textSecondary,
             ),
           ),
-          
           const SizedBox(height: 16),
-          
-          // Amount
           Text(
             CurrencyFormatter.formatCents(widget.lease.monthlyRent ?? 0),
             style: const TextStyle(
@@ -715,10 +792,7 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
               color: AppTheme.successColor,
             ),
           ),
-          
           const SizedBox(height: 16),
-          
-          // Note field (optional)
           TextField(
             controller: _noteController,
             decoration: const InputDecoration(
@@ -747,7 +821,8 @@ class _MarkPaymentDialogState extends ConsumerState<_MarkPaymentDialog> {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
               : const Text('Mark as Paid'),

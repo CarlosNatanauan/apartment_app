@@ -87,11 +87,9 @@ class TenantMembershipsNotifier extends Notifier<TenantMembershipsState> {
   // Join a space
   Future<void> joinSpace(String joinCode) async {
     try {
-      final membership = await _repository.joinSpace(joinCode);
-
-      state = state.copyWith(
-        memberships: [membership, ...state.memberships],
-      );
+      await _repository.joinSpace(joinCode);
+      // Reload to get full membership data (landlord name, contact, etc.)
+      await loadMemberships();
     } on ApiException {
       rethrow;
     }

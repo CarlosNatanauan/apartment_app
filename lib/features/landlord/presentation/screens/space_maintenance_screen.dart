@@ -1,4 +1,3 @@
-import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/landlord_maintenance_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/landlord_maintenance_card.dart';
 import 'package:apartment_app/theme/app_theme.dart';
@@ -21,8 +20,7 @@ class SpaceMaintenanceScreen extends ConsumerStatefulWidget {
       _SpaceMaintenanceScreenState();
 }
 
-class _SpaceMaintenanceScreenState
-    extends ConsumerState<SpaceMaintenanceScreen>
+class _SpaceMaintenanceScreenState extends ConsumerState<SpaceMaintenanceScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -30,10 +28,10 @@ class _SpaceMaintenanceScreenState
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-
-    // Load requests on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(landlordMaintenanceProvider.notifier).loadSpaceRequests(widget.spaceId);
+      ref
+          .read(landlordMaintenanceProvider.notifier)
+          .loadSpaceRequests(widget.spaceId);
     });
   }
 
@@ -44,7 +42,44 @@ class _SpaceMaintenanceScreenState
   }
 
   Future<void> _handleRefresh() async {
-    await ref.read(landlordMaintenanceProvider.notifier).loadSpaceRequests(widget.spaceId);
+    await ref
+        .read(landlordMaintenanceProvider.notifier)
+        .loadSpaceRequests(widget.spaceId);
+  }
+
+  Widget _buildStatChip(int count, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -68,18 +103,51 @@ class _SpaceMaintenanceScreenState
             ),
           ],
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: AppTheme.landlordColor,
-          unselectedLabelColor: AppTheme.textSecondary,
-          indicatorColor: AppTheme.landlordColor,
-          isScrollable: true,
-          tabs: [
-            Tab(text: 'All (${allRequests.length})'),
-            Tab(text: 'Pending (${pendingRequests.length})'),
-            Tab(text: 'Active (${inProgressRequests.length})'),
-            Tab(text: 'Completed (${completedRequests.length})'),
-          ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(102),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              children: [
+                // Stats chips row
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      _buildStatChip(
+                          allRequests.length, 'TOTAL', AppTheme.landlordColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(pendingRequests.length, 'PENDING',
+                          AppTheme.warningColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(inProgressRequests.length, 'ACTIVE',
+                          AppTheme.tenantColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(completedRequests.length, 'DONE',
+                          AppTheme.successColor),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                // Tabs
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppTheme.landlordColor,
+                  unselectedLabelColor: AppTheme.textSecondary,
+                  indicatorColor: AppTheme.landlordColor,
+                  isScrollable: true,
+                  tabs: const [
+                    Tab(text: 'All'),
+                    Tab(text: 'Pending'),
+                    Tab(text: 'Active'),
+                    Tab(text: 'Completed'),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
       body: isLoading && allRequests.isEmpty
@@ -124,27 +192,32 @@ class _SpaceMaintenanceScreenState
     String title;
     String message;
     IconData icon;
+    Color color;
 
     switch (type) {
       case 'pending':
         title = 'No Pending Requests';
         message = 'All maintenance requests have been addressed.';
         icon = Icons.pending_actions;
+        color = AppTheme.warningColor;
         break;
       case 'active':
         title = 'No Active Requests';
         message = 'No maintenance work is currently in progress.';
         icon = Icons.construction;
+        color = AppTheme.tenantColor;
         break;
       case 'completed':
         title = 'No Completed Requests';
         message = 'Completed maintenance requests will appear here.';
         icon = Icons.check_circle_outline;
+        color = AppTheme.successColor;
         break;
       default:
         title = 'No Maintenance Requests';
         message = 'Tenants haven\'t reported any issues yet.';
         icon = Icons.build_circle_outlined;
+        color = AppTheme.landlordColor;
     }
 
     return RefreshIndicator(
@@ -162,14 +235,10 @@ class _SpaceMaintenanceScreenState
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        size: 64,
-                        color: AppTheme.landlordColor,
-                      ),
+                      child: Icon(icon, size: 64, color: color),
                     ),
                     const SizedBox(height: 24),
                     Text(

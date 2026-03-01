@@ -200,60 +200,88 @@ class _LandlordMaintenanceDetailsScreenState
 
                 // Tenant Info Card
                 Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundColor: AppTheme.tenantColor,
-                              child: Text(
-                                request.tenantFirstName?[0].toUpperCase() ??
-                                    'T',
+                        // Frosted avatar
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              request.tenantFirstName?[0].toUpperCase() ?? 'T',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Name & email
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                request.tenantFullName ?? 'Tenant',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    request.tenantFullName ?? 'Tenant',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.w600),
+                              if (request.tenantEmail != null)
+                                Text(
+                                  request.tenantEmail!,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.85),
+                                    fontSize: 12,
                                   ),
-                                  Text(
-                                    request.tenantEmail ?? '',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
+                        ),
+                        // Room pill
+                        if (request.roomNumber != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.meeting_room_outlined,
+                                    size: 13, color: Colors.white),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Unit ${request.roomNumber}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Unit ${request.roomNumber}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
+                          ),
                       ],
                     ),
                   ),
@@ -282,8 +310,8 @@ class _LandlordMaintenanceDetailsScreenState
                   Icons.description_outlined,
                 ),
 
-                // Image (if present)
-                if (request.imageUrl != null || request.imageData != null) ...[
+                // Images (if present)
+                if (request.hasImages) ...[
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
@@ -293,39 +321,37 @@ class _LandlordMaintenanceDetailsScreenState
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.photo, size: 20),
+                              const Icon(Icons.photo_library, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                'Photo',
+                                'Photos (${request.images.length})',
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-
-                          // NEW backend (preferred)
-                          if (request.imageUrl != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                '${AppConstants.baseUrl}${request.imageUrl}',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
-                            )
-                          // OLD fallback (optional)
-                          else if (request.imageData != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.memory(
-                                Uri.parse(
-                                  request.imageData!,
-                                ).data!.contentAsBytes(),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
+                          SizedBox(
+                            height: 200,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: request.images.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final img = request.images[index];
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    '${AppConstants.baseUrl}${img.imagePath}',
+                                    width: 200,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -447,7 +473,7 @@ class _LandlordMaintenanceDetailsScreenState
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -517,8 +543,15 @@ class _LandlordMaintenanceDetailsScreenState
           children: [
             Row(
               children: [
-                Icon(icon, size: 20),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.landlordColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppTheme.landlordColor),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -527,7 +560,7 @@ class _LandlordMaintenanceDetailsScreenState
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(content, style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),

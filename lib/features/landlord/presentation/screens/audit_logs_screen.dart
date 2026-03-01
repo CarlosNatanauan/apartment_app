@@ -44,10 +44,12 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
     switch (category) {
       case 'SPACE':
         return AppTheme.landlordColor;
-      case 'ROOM':
+      case 'UNIT':
         return const Color(0xFF8B5CF6); // Purple
       case 'MEMBERSHIP':
         return AppTheme.tenantColor;
+      case 'MAINTENANCE':
+        return const Color(0xFFF59E0B); // Amber
       default:
         return AppTheme.textSecondary;
     }
@@ -55,13 +57,15 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
 
   // Get icon for action
   IconData _getActionIcon(String action) {
+    if (action.contains('MAINTENANCE')) return Icons.build_outlined;
+    if (action.contains('CANCEL')) return Icons.cancel_outlined;
     if (action.contains('CREATE')) return Icons.add_circle_outline;
     if (action.contains('UPDATE')) return Icons.edit_outlined;
     if (action.contains('DELETE')) return Icons.delete_outline;
-    if (action.contains('APPROVE')) return Icons.check_circle_outline;
-    if (action.contains('REJECT')) return Icons.cancel_outlined;
+    if (action.contains('APPROVE') || action.contains('LEASE_APPROVE')) return Icons.check_circle_outline;
+    if (action.contains('REJECT') || action.contains('LEASE_REJECT')) return Icons.cancel_outlined;
     if (action.contains('MOVE')) return Icons.swap_horiz;
-    if (action.contains('JOIN')) return Icons.person_add_outlined;
+    if (action.contains('JOIN') || action.contains('ROOM_REQUEST') || action.contains('LEASE_END')) return Icons.person_add_outlined;
     if (action.contains('LEAVE') || action.contains('REMOVE')) return Icons.person_remove_outlined;
     return Icons.info_outline;
   }
@@ -117,7 +121,7 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                 ),
               ),
               const PopupMenuItem(
-                value: 'ROOM',
+                value: 'UNIT',
                 child: Row(
                   children: [
                     Icon(Icons.door_front_door_outlined, size: 20, color: Color(0xFF8B5CF6)),
@@ -133,6 +137,16 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                     Icon(Icons.people_outline, size: 20, color: AppTheme.tenantColor),
                     SizedBox(width: 12),
                     Text('Membership Actions'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'MAINTENANCE',
+                child: Row(
+                  children: [
+                    Icon(Icons.build_outlined, size: 20, color: Color(0xFFF59E0B)),
+                    SizedBox(width: 12),
+                    Text('Maintenance Actions'),
                   ],
                 ),
               ),
@@ -191,7 +205,7 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                                           icon: const Icon(Icons.expand_more),
                                           label: const Text('Load More'),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppTheme.landlordColor.withOpacity(0.1),
+                                            backgroundColor: AppTheme.landlordColor.withValues(alpha: 0.1),
                                             foregroundColor: AppTheme.landlordColor,
                                           ),
                                         ),
@@ -209,8 +223,8 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                                 leading: Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: categoryColor.withOpacity(0.1),
-                                    shape: BoxShape.circle,
+                                    color: categoryColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Icon(
                                     icon,
@@ -245,8 +259,8 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                                 trailing: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: categoryColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8),
+                                    color: categoryColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                     log.category,
@@ -286,7 +300,7 @@ class _AuditLogsScreenState extends ConsumerState<AuditLogsScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

@@ -73,7 +73,7 @@ class LandlordMaintenanceCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.landlordColor.withOpacity(0.1),
+                      color: AppTheme.landlordColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -199,7 +199,7 @@ class LandlordMaintenanceCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(

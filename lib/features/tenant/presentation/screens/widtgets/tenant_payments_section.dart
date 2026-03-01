@@ -17,219 +17,254 @@ class TenantPaymentsSection extends ConsumerWidget {
     final paymentsBySpace = paymentsState.paymentsBySpace;
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gradient header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF059669), AppTheme.tenantColor],
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppTheme.tenantColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
-                    Icons.payments,
-                    color: AppTheme.tenantColor,
-                    size: 20,
+                  child: const Icon(Icons.payments, color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'My Payments',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Text(
-                  'My Payments',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Month navigation
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppTheme.backgroundColor,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppTheme.borderColor,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: () {
-                      ref.read(tenantPaymentsProvider.notifier).previousMonth();
-                    },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    iconSize: 24,
-                    color: AppTheme.tenantColor,
-                  ),
-                  Expanded(
+                if (paymentsState.overdueCount > 0) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Text(
-                      paymentsState.periodLabel,
+                      '${paymentsState.overdueCount} Overdue',
                       style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary,
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.chevron_right,
-                      color: paymentsState.isCurrentMonth
-                          ? AppTheme.textHint
-                          : AppTheme.tenantColor,
-                    ),
-                    onPressed: paymentsState.isCurrentMonth
-                        ? null
-                        : () {
-                            ref.read(tenantPaymentsProvider.notifier).nextMonth();
-                          },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    iconSize: 24,
                   ),
                 ],
-              ),
+              ],
             ),
+          ),
 
-            const SizedBox(height: 16),
-
-            // Loading state
-            if (isLoading)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(24),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            // Empty state
-            else if (payments.isEmpty)
-              _buildEmptyState()
-            // Payments list
-            else ...[
-              // Summary stats
-              if (payments.length > 1) ...[
+          // Body
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Month navigation
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.tenantColor.withOpacity(0.08),
-                        AppTheme.tenantColor.withOpacity(0.03),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.tenantColor.withOpacity(0.2),
-                    ),
+                    color: AppTheme.backgroundColor,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppTheme.borderColor),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatItem(
-                        label: 'Paid',
-                        value: '${paymentsState.paidCount}',
-                        color: AppTheme.successColor,
-                        icon: Icons.check_circle,
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () {
+                          ref
+                              .read(tenantPaymentsProvider.notifier)
+                              .previousMonth();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        iconSize: 24,
+                        color: AppTheme.tenantColor,
                       ),
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: AppTheme.borderColor,
-                      ),
-                      _buildStatItem(
-                        label: 'Unpaid',
-                        value: '${paymentsState.unpaidCount}',
-                        color: AppTheme.errorColor,
-                        icon: Icons.pending,
-                      ),
-                      if (paymentsState.overdueCount > 0) ...[
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: AppTheme.borderColor,
+                      Expanded(
+                        child: Text(
+                          paymentsState.periodLabel,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        _buildStatItem(
-                          label: 'Overdue',
-                          value: '${paymentsState.overdueCount}',
-                          color: AppTheme.errorColor,
-                          icon: Icons.error,
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.chevron_right,
+                          color: paymentsState.isCurrentMonth
+                              ? AppTheme.textHint
+                              : AppTheme.tenantColor,
                         ),
-                      ],
+                        onPressed: paymentsState.isCurrentMonth
+                            ? null
+                            : () {
+                                ref
+                                    .read(tenantPaymentsProvider.notifier)
+                                    .nextMonth();
+                              },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        iconSize: 24,
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
 
-              // Payments by space
-              ...paymentsBySpace.entries.map((entry) {
-                final spaceName = entry.key;
-                final spacePayments = entry.value;
+                const SizedBox(height: 14),
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Space name header
-                    if (paymentsBySpace.length > 1) ...[
-                      Container(
-                        margin: const EdgeInsets.only(top: 8, bottom: 12),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.tenantColor.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppTheme.tenantColor.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.business,
-                              size: 16,
-                              color: AppTheme.tenantColor,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              spaceName,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.tenantColor,
-                              ),
-                            ),
+                // Loading state
+                if (isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                // Empty state
+                else if (payments.isEmpty)
+                  _buildEmptyState()
+                // Payments list
+                else ...[
+                  // Summary stats
+                  if (payments.length > 1) ...[
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.tenantColor.withValues(alpha: 0.08),
+                            AppTheme.tenantColor.withValues(alpha: 0.03),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.tenantColor.withValues(alpha: 0.2),
                         ),
                       ),
-                    ],
-
-                    // Payment cards
-                    ...spacePayments.map((payment) => _PaymentCard(
-                      payment: payment,
-                    )),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildStatItem(
+                            label: 'Paid',
+                            value: '${paymentsState.paidCount}',
+                            color: AppTheme.successColor,
+                            icon: Icons.check_circle,
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: AppTheme.borderColor,
+                          ),
+                          _buildStatItem(
+                            label: 'Unpaid',
+                            value: '${paymentsState.unpaidCount}',
+                            color: AppTheme.errorColor,
+                            icon: Icons.pending,
+                          ),
+                          if (paymentsState.overdueCount > 0) ...[
+                            Container(
+                              width: 1,
+                              height: 40,
+                              color: AppTheme.borderColor,
+                            ),
+                            _buildStatItem(
+                              label: 'Overdue',
+                              value: '${paymentsState.overdueCount}',
+                              color: AppTheme.errorColor,
+                              icon: Icons.error,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
                   ],
-                );
-              }),
-            ],
-          ],
-        ),
+
+                  // Payments by space
+                  ...paymentsBySpace.entries.map((entry) {
+                    final spaceName = entry.key;
+                    final spacePayments = entry.value;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Space name header
+                        if (paymentsBySpace.length > 1) ...[
+                          Container(
+                            margin: const EdgeInsets.only(top: 8, bottom: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.tenantColor.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color:
+                                    AppTheme.tenantColor.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.business,
+                                  size: 16,
+                                  color: AppTheme.tenantColor,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  spaceName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.tenantColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        // Payment cards
+                        ...spacePayments.map((payment) => _PaymentCard(
+                              payment: payment,
+                            )),
+                      ],
+                    );
+                  }),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -243,11 +278,7 @@ class TenantPaymentsSection extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: color,
-          size: 20,
-        ),
+        Icon(icon, color: color, size: 20),
         const SizedBox(height: 6),
         Text(
           value,
@@ -276,38 +307,33 @@ class TenantPaymentsSection extends ConsumerWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.textHint.withOpacity(0.03),
-            AppTheme.textHint.withOpacity(0.08),
+            AppTheme.textHint.withValues(alpha: 0.03),
+            AppTheme.textHint.withValues(alpha: 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppTheme.borderColor,
-        ),
+        border: Border.all(color: AppTheme.borderColor),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppTheme.tenantColor.withOpacity(0.1),
+              color: AppTheme.tenantColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.receipt_long_outlined,
               size: 48,
-              color: AppTheme.tenantColor.withOpacity(0.6),
+              color: AppTheme.tenantColor.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 20),
           const Text(
             'No Payments This Month',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
           ),
           const SizedBox(height: 8),
           Text(
@@ -334,7 +360,7 @@ class _PaymentCard extends StatelessWidget {
   Color _getStatusColor() {
     if (payment.isPaid) return AppTheme.successColor;
     if (payment.isOverdue) return AppTheme.errorColor;
-    if (payment.isDueToday) return AppTheme.errorColor.withOpacity(0.8);
+    if (payment.isDueToday) return AppTheme.errorColor;
     if (payment.isDueSoon) return AppTheme.warningColor;
     return AppTheme.textSecondary;
   }
@@ -355,7 +381,6 @@ class _PaymentCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          // Navigate to payment history
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -372,10 +397,10 @@ class _PaymentCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.05),
+            color: statusColor.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: statusColor.withOpacity(0.3),
+              color: statusColor.withValues(alpha: 0.3),
               width: 1.5,
             ),
           ),
@@ -388,7 +413,7 @@ class _PaymentCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.15),
+                      color: statusColor.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -434,7 +459,7 @@ class _PaymentCard extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.tenantColor.withOpacity(0.1),
+                      color: AppTheme.tenantColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -450,19 +475,19 @@ class _PaymentCard extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
-              
+
               // Divider
               Container(
                 height: 1,
-                color: statusColor.withOpacity(0.15),
+                color: statusColor.withValues(alpha: 0.15),
               ),
-              
+
               const SizedBox(height: 12),
 
               // Bottom row: Payment info
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.calendar_today_outlined,
                     size: 14,
                     color: AppTheme.textSecondary,
@@ -480,7 +505,7 @@ class _PaymentCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Icon(
+                  const Icon(
                     Icons.chevron_right,
                     size: 18,
                     color: AppTheme.textHint,

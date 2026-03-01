@@ -2,16 +2,19 @@ import 'user_model.dart';
 
 class LoginResponse {
   final String accessToken;
+  final bool isNewUser;
   final User? user; // Optional, might come from /auth/me
 
   LoginResponse({
     required this.accessToken,
+    this.isNewUser = false,
     this.user,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       accessToken: json['accessToken'] as String,
+      isNewUser: json['isNewUser'] as bool? ?? false,
       user: json['user'] != null ? User.fromJson(json['user']) : null,
     );
   }

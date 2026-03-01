@@ -31,7 +31,8 @@ class _CreateMaintenanceScreenState
   // ✅ NEW: roomId selector (not membershipId)
   String? _selectedRoomId;
 
-  XFile? _selectedImage;
+  final List<XFile> _selectedImages = [];
+  static const int _maxImages = 5;
   bool _isSubmitting = false;
 
   @override
@@ -50,23 +51,26 @@ class _CreateMaintenanceScreenState
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImages() async {
+    final remaining = _maxImages - _selectedImages.length;
+    if (remaining <= 0) return;
+
     try {
-      final image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+      final picked = await _imagePicker.pickMultiImage(
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 85,
       );
 
-      if (image != null) {
-        setState(() => _selectedImage = image);
+      if (picked.isNotEmpty) {
+        final toAdd = picked.take(remaining).toList();
+        setState(() => _selectedImages.addAll(toAdd));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick image: $e'),
+            content: Text('Failed to pick images: $e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -110,15 +114,14 @@ class _CreateMaintenanceScreenState
               orElse: () => throw Exception('Please select a unit'),
             ).roomId;
 
-      File? imageFile;
-      if (_selectedImage != null) {
-        imageFile = File(_selectedImage!.path);
-
-        // ✅ optional: enforce 5MB client-side
-        final size = await imageFile.length();
+      final imageFiles = <File>[];
+      for (final xFile in _selectedImages) {
+        final file = File(xFile.path);
+        final size = await file.length();
         if (size > 5 * 1024 * 1024) {
-          throw Exception('Image must be 5MB or less.');
+          throw Exception('Each image must be 5MB or less.');
         }
+        imageFiles.add(file);
       }
 
       await ref.read(maintenanceProvider.notifier).createRequest(
@@ -129,7 +132,7 @@ class _CreateMaintenanceScreenState
                 : null,
             title: _titleController.text.trim(),
             description: _descriptionController.text.trim(),
-            imageFile: imageFile,
+            imageFiles: imageFiles,
           );
 
       if (mounted) {
@@ -427,7 +430,7 @@ class _CreateMaintenanceScreenState
 
             // Image Upload (Optional)
             Text(
-              'Photo (Optional)',
+              'Photos (Optional, up to $_maxImages)',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -442,50 +445,92 @@ class _CreateMaintenanceScreenState
               ),
               child: Column(
                 children: [
-                  if (_selectedImage == null) ...[
+                  if (_selectedImages.isEmpty) ...[
                     Icon(Icons.add_photo_alternate_outlined,
                         size: 48, color: AppTheme.textHint),
                     const SizedBox(height: 8),
-                    Text('Add a photo of the issue',
+                    Text('Add photos of the issue',
                         style: Theme.of(context).textTheme.bodyMedium),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      onPressed: _isSubmitting ? null : _pickImage,
+                      onPressed: _isSubmitting ? null : _pickImages,
                       icon: const Icon(Icons.photo_library),
-                      label: const Text('Choose Photo'),
+                      label: const Text('Choose Photos'),
                     ),
                   ] else ...[
-                    Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(_selectedImage!.path),
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.black54,
-                            child: IconButton(
-                              icon: const Icon(Icons.close, color: Colors.white),
-                              onPressed: _isSubmitting
-                                  ? null
-                                  : () => setState(() => _selectedImage = null),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: _isSubmitting ? null : _pickImage,
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Change Photo'),
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _selectedImages.length +
+                            (_selectedImages.length < _maxImages ? 1 : 0),
+                        separatorBuilder: (_, _) => const SizedBox(width: 8),
+                        itemBuilder: (context, index) {
+                          if (index == _selectedImages.length) {
+                            // "Add more" button
+                            return GestureDetector(
+                              onTap: _isSubmitting ? null : _pickImages,
+                              child: Container(
+                                width: 100,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: AppTheme.tenantColor, width: 2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_photo_alternate_outlined,
+                                        color: AppTheme.tenantColor),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${_selectedImages.length}/$_maxImages',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                              color: AppTheme.tenantColor),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          final image = _selectedImages[index];
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(image.path),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: GestureDetector(
+                                  onTap: _isSubmitting
+                                      ? null
+                                      : () => setState(
+                                          () => _selectedImages.removeAt(index)),
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.black54,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: const Icon(Icons.close,
+                                        color: Colors.white, size: 16),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ],

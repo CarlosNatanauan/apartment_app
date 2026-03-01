@@ -71,11 +71,11 @@ class MaintenanceRequestCard extends StatelessWidget {
               // Header Row
               Row(
                 children: [
-                  // Category Icon
+                  // Category Icon box
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppTheme.tenantColor.withOpacity(0.1),
+                      color: AppTheme.tenantColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -85,7 +85,7 @@ class MaintenanceRequestCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Category & Time
                   Expanded(
                     child: Column(
@@ -124,7 +124,7 @@ class MaintenanceRequestCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
 
               // Description Preview
               Text(
@@ -141,45 +141,78 @@ class MaintenanceRequestCard extends StatelessWidget {
                 children: [
                   // Location
                   Icon(
-                    Icons.location_on_outlined,
-                    size: 16,
-                    color: AppTheme.textSecondary,
+                    Icons.apartment_outlined,
+                    size: 14,
+                    color: AppTheme.tenantColor,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '${request.spaceName} - Unit ${request.roomNumber}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      '${request.spaceName} · Unit ${request.roomNumber}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
 
-                  // Comments Count
+                  // Comments badge
                   if (request.commentCount > 0) ...[
-                    const SizedBox(width: 12),
-                    Icon(
-                      Icons.comment_outlined,
-                      size: 16,
-                      color: AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${request.commentCount}',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppTheme.tenantColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.comment_outlined,
+                            size: 12,
+                            color: AppTheme.tenantColor,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${request.commentCount}',
+                            style: TextStyle(
+                              color: AppTheme.tenantColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
 
-                  // Cancel Button
+                  // Cancel pill
                   if (onCancel != null) ...[
                     const SizedBox(width: 8),
-                    TextButton(
-                      onPressed: onCancel,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.errorColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                    GestureDetector(
+                      onTap: onCancel,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.errorColor.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppTheme.errorColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: AppTheme.errorColor,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      child: const Text('Cancel'),
                     ),
                   ],
                 ],

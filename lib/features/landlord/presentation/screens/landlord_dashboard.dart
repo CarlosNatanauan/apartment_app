@@ -14,7 +14,9 @@ import 'package:go_router/go_router.dart';
 import 'package:apartment_app/core/utils/currency_formatter.dart';
 
 class LandlordDashboard extends ConsumerStatefulWidget {
-  const LandlordDashboard({super.key});
+  final VoidCallback? onSwitchToSpaces;
+
+  const LandlordDashboard({super.key, this.onSwitchToSpaces});
 
   @override
   ConsumerState<LandlordDashboard> createState() => _LandlordDashboardState();
@@ -87,53 +89,85 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> {
 
   Widget _buildEmptyState() {
     return ListView(
+      padding: const EdgeInsets.all(24),
       children: [
         SizedBox(
-          height: MediaQuery.of(context).size.height - 200,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: AppTheme.landlordColor.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.business,
-                      size: 64,
-                      color: AppTheme.landlordColor,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'No Spaces Yet',
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Create a space first to view your dashboard.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Navigate to spaces tab
-                      // (This assumes the parent LandlordMainScreen can handle tab switching)
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text('Go to Spaces'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.landlordColor,
-                    ),
-                  ),
-                ],
+          height: MediaQuery.of(context).size.height - 220,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Icon
+              Container(
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: AppTheme.landlordColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.business,
+                  size: 64,
+                  color: AppTheme.landlordColor,
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+
+              Text(
+                'Welcome, Landlord!',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Set up your first space to start managing tenants, payments, and maintenance.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Steps
+              _OnboardingStep(
+                number: '1',
+                icon: Icons.add_business_outlined,
+                title: 'Create a Space',
+                subtitle: 'Add your apartment complex or building',
+              ),
+              const SizedBox(height: 12),
+              _OnboardingStep(
+                number: '2',
+                icon: Icons.door_front_door_outlined,
+                title: 'Add Units',
+                subtitle: 'Define individual rooms or units inside your space',
+              ),
+              const SizedBox(height: 12),
+              _OnboardingStep(
+                number: '3',
+                icon: Icons.people_outline,
+                title: 'Add Tenants',
+                subtitle: 'Share your join code so tenants can request to join',
+              ),
+
+              const SizedBox(height: 32),
+
+              // CTA button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: widget.onSwitchToSpaces,
+                  icon: const Icon(Icons.arrow_forward),
+                  label: const Text('Go to Spaces'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.landlordColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -152,36 +186,72 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> {
         // Space Selector
         Card(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedSpaceId,
-                isExpanded: true,
-                hint: const Text('Select Space'),
-                icon: const Icon(Icons.arrow_drop_down),
-                items: spaces.map<DropdownMenuItem<String>>((space) {
-                  return DropdownMenuItem<String>(
-                    value: space.id,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.business, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            space.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.landlordColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.business,
+                    color: AppTheme.landlordColor,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'VIEWING SPACE',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textSecondary,
+                          letterSpacing: 0.8,
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: _onSpaceSelected,
-              ),
+                      ),
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedSpaceId,
+                          isExpanded: true,
+                          isDense: true,
+                          hint: const Text(
+                            'Select Space',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.expand_more,
+                            color: AppTheme.landlordColor,
+                          ),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: AppTheme.textPrimary,
+                          ),
+                          items: spaces.map<DropdownMenuItem<String>>((space) {
+                            return DropdownMenuItem<String>(
+                              value: space.id,
+                              child: Text(
+                                space.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: _onSpaceSelected,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -222,6 +292,76 @@ class _LandlordDashboardState extends ConsumerState<LandlordDashboard> {
   }
 }
 
+// Onboarding step row for the empty state
+class _OnboardingStep extends StatelessWidget {
+  final String number;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _OnboardingStep({
+    required this.number,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppTheme.landlordColor.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.landlordColor,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: AppTheme.landlordColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 // Payment Summary Card Widget
 class _PaymentSummaryCard extends StatelessWidget {
   final String spaceId;
@@ -252,137 +392,169 @@ class _PaymentSummaryCard extends StatelessWidget {
     }
 
     return Card(
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PaymentDetailsScreen(
-                spaceId: spaceId,
-                spaceName: spaceName,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gradient header
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PaymentDetailsScreen(
+                    spaceId: spaceId,
+                    spaceName: spaceName,
+                  ),
+                ),
+              );
+            },
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+                ),
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(12)),
               ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
+              child: Row(
                 children: [
-                  const Icon(Icons.payments, color: AppTheme.landlordColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Payments - ${summary!.periodLabel}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.payments,
+                        color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Payments · ${summary!.periodLabel}',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  if (summary!.hasOverdue)
+                  if (summary!.hasOverdue) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppTheme.errorColor,
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '${summary!.overdueCount} Overdue',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
+                  ],
+                  const Icon(Icons.arrow_forward_ios,
+                      color: Colors.white, size: 12),
                 ],
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Progress bar
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: summary!.percentPaid / 100,
-                  minHeight: 8,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation(
-                    summary!.hasOverdue ? AppTheme.warningColor : AppTheme.successColor,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 4),
-              
-              Text(
-                '${summary!.percentPaid.toStringAsFixed(0)}% Paid',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textHint,
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Stats
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatColumn(
-                      label: 'Expected',
-                      value: CurrencyFormatter.formatCents(summary!.totalExpected),
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  Expanded(
-                    child: _StatColumn(
-                      label: 'Paid',
-                      value: CurrencyFormatter.formatCents(summary!.totalPaid),
-                      color: AppTheme.successColor,
-                    ),
-                  ),
-                  Expanded(
-                    child: _StatColumn(
-                      label: 'Unpaid',
-                      value: CurrencyFormatter.formatCents(summary!.totalUnpaid),
-                      color: AppTheme.errorColor,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // View Details button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PaymentDetailsScreen(
-                          spaceId: spaceId,
-                          spaceName: spaceName,
-                        ),
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.landlordColor,
-                    side: const BorderSide(color: AppTheme.landlordColor),
-                  ),
-                  child: const Text('View Details'),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          // Body
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Progress bar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: summary!.percentPaid / 100,
+                    minHeight: 8,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation(
+                      summary!.hasOverdue
+                          ? AppTheme.warningColor
+                          : AppTheme.successColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${summary!.percentPaid.toStringAsFixed(0)}% Paid',
+                  style: const TextStyle(
+                      fontSize: 12, color: AppTheme.textHint),
+                ),
+                const SizedBox(height: 16),
+
+                // Stats
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatColumn(
+                        label: 'Expected',
+                        value: CurrencyFormatter.formatCents(
+                            summary!.totalExpected),
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Expanded(
+                      child: _StatColumn(
+                        label: 'Paid',
+                        value: CurrencyFormatter.formatCents(
+                            summary!.totalPaid),
+                        color: AppTheme.successColor,
+                      ),
+                    ),
+                    Expanded(
+                      child: _StatColumn(
+                        label: 'Unpaid',
+                        value: CurrencyFormatter.formatCents(
+                            summary!.totalUnpaid),
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentDetailsScreen(
+                            spaceId: spaceId,
+                            spaceName: spaceName,
+                          ),
+                        ),
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.landlordColor,
+                      side:
+                          const BorderSide(color: AppTheme.landlordColor),
+                    ),
+                    child: const Text('View All Payments'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -452,36 +624,76 @@ class _UpcomingPaymentsCard extends StatelessWidget {
 
     if (upcomingPayments.isEmpty) {
       return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
+        child: Column(
+          children: [
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+                ),
+                borderRadius:
+                    BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
                 children: [
-                  const Icon(Icons.schedule, color: AppTheme.successColor),
-                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.schedule,
+                        color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
                   const Text(
-                    'Upcoming Payments (Next 7 Days)',
+                    'Upcoming Payments',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Icon(
-                Icons.check_circle_outline,
-                size: 48,
-                color: AppTheme.successColor.withOpacity(0.5),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.successColor.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_circle_outline,
+                      size: 28,
+                      color: AppTheme.successColor,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'All caught up!',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'No payments due in the next 7 days',
+                    style: TextStyle(
+                        fontSize: 12, color: AppTheme.textSecondary),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'No upcoming payments',
-                style: TextStyle(color: AppTheme.textSecondary),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -489,28 +701,47 @@ class _UpcomingPaymentsCard extends StatelessWidget {
     final displayList = upcomingPayments.take(3).toList();
 
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Gradient header
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1E40AF), AppTheme.landlordColor],
+              ),
+              borderRadius:
+                  BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
               children: [
-                const Icon(Icons.schedule, color: AppTheme.warningColor),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.schedule,
+                      color: Colors.white, size: 18),
+                ),
+                const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
-                    'Upcoming Payments (Next 7 Days)',
+                    'Upcoming Payments',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
                 ),
                 if (upcomingPayments.length > 3)
-                  TextButton(
-                    onPressed: () {
+                  InkWell(
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -521,20 +752,41 @@ class _UpcomingPaymentsCard extends StatelessWidget {
                         ),
                       );
                     },
-                    child: const Text('View All'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'View All',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ),
-            
-            const SizedBox(height: 12),
-            
-            // List of upcoming payments
-            ...displayList.map((payment) => _UpcomingPaymentItem(
-              payment: payment,
-              spaceId: spaceId,
-            )),
-          ],
-        ),
+          ),
+
+          // Payment items
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: displayList
+                  .map((payment) => _UpcomingPaymentItem(
+                        payment: payment,
+                        spaceId: spaceId,
+                      ))
+                  .toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -551,7 +803,7 @@ class _UpcomingPaymentItem extends ConsumerWidget {
 
   Color _getUrgencyColor() {
     if (payment.isOverdue) return AppTheme.errorColor;
-    if (payment.isDueToday) return AppTheme.errorColor.withOpacity(0.8);
+    if (payment.isDueToday) return AppTheme.errorColor;
     if (payment.isDueSoon) return AppTheme.warningColor;
     return AppTheme.successColor;
   }
@@ -559,51 +811,59 @@ class _UpcomingPaymentItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final urgencyColor = _getUrgencyColor();
-    
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        onTap: () {
-          // Show mark paid dialog
-          _showMarkPaidDialog(context, ref);
-        },
-        borderRadius: BorderRadius.circular(8),
+        onTap: () => _showMarkPaidDialog(context, ref),
+        borderRadius: BorderRadius.circular(10),
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: urgencyColor.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8),
+            color: urgencyColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: urgencyColor.withOpacity(0.3),
-              width: 1,
+              color: urgencyColor.withValues(alpha: 0.2),
             ),
           ),
           child: Row(
             children: [
-              // Days indicator
+              // Days indicator box
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: urgencyColor.withOpacity(0.2),
-                  shape: BoxShape.circle,
+                  color: urgencyColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Center(
-                  child: Text(
-                    payment.isOverdue 
-                        ? '${-payment.daysUntilDue}d'
-                        : '${payment.daysUntilDue}d',
-                    style: TextStyle(
-                      color: urgencyColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      payment.isOverdue
+                          ? '${-payment.daysUntilDue}'
+                          : '${payment.daysUntilDue}',
+                      style: TextStyle(
+                        color: urgencyColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        height: 1,
+                      ),
                     ),
-                  ),
+                    Text(
+                      'days',
+                      style: TextStyle(
+                        color: urgencyColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               // Details
               Expanded(
                 child: Column(
@@ -618,13 +878,21 @@ class _UpcomingPaymentItem extends ConsumerWidget {
                             fontSize: 14,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          payment.urgencyLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: urgencyColor,
-                            fontWeight: FontWeight.w500,
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: urgencyColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            payment.urgencyLabel,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: urgencyColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -640,7 +908,7 @@ class _UpcomingPaymentItem extends ConsumerWidget {
                   ],
                 ),
               ),
-              
+
               // Amount
               Text(
                 CurrencyFormatter.formatCents(payment.monthlyRent),
@@ -657,7 +925,7 @@ class _UpcomingPaymentItem extends ConsumerWidget {
   }
 
   void _showMarkPaidDialog(BuildContext context, WidgetRef ref) async {
-    final result = await showMarkPaymentDialog(
+    await showMarkPaymentDialog(
       context: context,
       spaceId: spaceId,
       leaseId: payment.leaseId,
@@ -665,7 +933,5 @@ class _UpcomingPaymentItem extends ConsumerWidget {
       roomNumber: payment.roomNumber,
       amount: payment.monthlyRent,
     );
-    
-    // Dialog already handles success message and refresh
   }
 }

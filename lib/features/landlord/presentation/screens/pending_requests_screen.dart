@@ -263,7 +263,7 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -287,7 +287,7 @@ class _PendingRequestsScreenState extends ConsumerState<PendingRequestsScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.05),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(

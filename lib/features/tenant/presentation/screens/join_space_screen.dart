@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class JoinSpaceScreen extends ConsumerStatefulWidget {
   const JoinSpaceScreen({super.key});
@@ -22,6 +23,16 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
   void dispose() {
     _joinCodeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openQrScanner() async {
+    final code = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const _QrScannerPage()),
+    );
+    if (code != null && mounted) {
+      setState(() => _joinCodeController.text = code);
+    }
   }
 
   Future<void> _handleSubmit() async {
@@ -171,7 +182,24 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
               enabled: !_isSubmitting,
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+
+            // Scan QR Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isSubmitting ? null : _openQrScanner,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text('Scan QR Code'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.tenantColor,
+                  side: const BorderSide(color: AppTheme.tenantColor),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             // Submit Button
             SizedBox(
@@ -207,6 +235,98 @@ class _JoinSpaceScreenState extends ConsumerState<JoinSpaceScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _QrScannerPage extends StatefulWidget {
+  const _QrScannerPage();
+
+  @override
+  State<_QrScannerPage> createState() => _QrScannerPageState();
+}
+
+class _QrScannerPageState extends State<_QrScannerPage> {
+  final _codeRegex = RegExp(r'^[A-Z0-9]{6}$');
+  bool _processed = false;
+  String? _errorMessage;
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_processed) return;
+    for (final barcode in capture.barcodes) {
+      final value = barcode.rawValue?.trim().toUpperCase();
+      if (value != null && _codeRegex.hasMatch(value)) {
+        _processed = true;
+        Navigator.pop(context, value);
+        return;
+      }
+    }
+    if (mounted) {
+      setState(() => _errorMessage = 'Invalid code — try again');
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _errorMessage = null);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan Join Code'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+      ),
+      body: Stack(
+        children: [
+          MobileScanner(onDetect: _onDetect),
+          // Viewfinder overlay
+          Center(
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppTheme.tenantColor, width: 3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          // Label
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                if (_errorMessage != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Point at the landlord\'s QR code',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
