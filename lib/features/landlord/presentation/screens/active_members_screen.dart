@@ -129,9 +129,9 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.errorColor.withOpacity(0.1),
+                color: AppTheme.errorColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.errorColor.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -378,9 +378,9 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppTheme.warningColor.withOpacity(0.1),
+                color: AppTheme.warningColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.warningColor.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.warningColor.withValues(alpha: 0.3)),
               ),
               child: const Row(
                 children: [
@@ -543,7 +543,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -567,7 +567,7 @@ class _ActiveMembersScreenState extends ConsumerState<ActiveMembersScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.05),
+                        color: AppTheme.landlordColor.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Column(

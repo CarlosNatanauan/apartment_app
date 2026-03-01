@@ -1,5 +1,6 @@
 import 'package:apartment_app/features/auth/presentation/screens/home/home_screen.dart';
 import 'package:apartment_app/features/auth/presentation/screens/home/profile_screen.dart';
+import 'package:apartment_app/features/auth/presentation/screens/role_selection_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/landlord_main_screen.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/space_maintenance_screen.dart'; // 🆕 ADD
 import 'package:apartment_app/features/landlord/presentation/screens/landlord_maintenance_details_screen.dart'; // 🆕 ADD
@@ -20,14 +21,21 @@ final _loginKey = GlobalKey();
 final _registerKey = GlobalKey();
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // IMPORTANT: Do NOT use ref.watch(authProvider) here.
+  // Watching causes the entire GoRouter to be recreated on every auth state
+  // change (isLoading, clearError, etc.), resetting the navigation stack and
+  // unmounting active screens mid-async-operation.
+  // Auth state is read inside the redirect callback via ProviderScope instead.
 
   return GoRouter(
     initialLocation: '/auth/login',
     redirect: (context, state) {
+      final authState =
+          ProviderScope.containerOf(context, listen: false).read(authProvider);
       final isAuthenticated = authState.isAuthenticated;
       final isInitialized = authState.isInitialized;
       final isLoading = authState.isLoading;
+      final isNewUser = authState.isNewUser;
       final currentPath = state.matchedLocation;
       final userRole = authState.user?.role;
 
@@ -37,6 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       print('   Authenticated: $isAuthenticated');
       print('   Role: $userRole');
       print('   Loading: $isLoading');
+      print('   IsNewUser: $isNewUser');
 
       // Don't redirect if currently loading
       if (isLoading) {
@@ -50,37 +59,40 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/';
       }
 
+      // New Google user needs to select their role before entering the app
+      if (isAuthenticated && isNewUser && currentPath != '/role-selection') {
+        print('   → Redirecting to /role-selection (new Google user)');
+        return '/role-selection';
+      }
+
+      // Helper to redirect to the correct dashboard
+      dashboardPath() {
+        if (userRole == 'LANDLORD') return '/landlord';
+        if (userRole == 'TENANT') return '/tenant';
+        return '/home';
+      }
+
+      // If role selection is done, leave /role-selection
+      if (currentPath == '/role-selection' && (!isAuthenticated || !isNewUser)) {
+        print('   → Leaving /role-selection (role set)');
+        return dashboardPath();
+      }
+
       // After initialized, redirect from splash based on role
-      if (isInitialized && currentPath == '/') {
+      if (currentPath == '/') {
         if (isAuthenticated) {
-          if (userRole == 'LANDLORD') {
-            print('   → Redirecting to /landlord (LANDLORD user)');
-            return '/landlord';
-          } else if (userRole == 'TENANT') {
-            print('   → Redirecting to /tenant (TENANT user)');
-            return '/tenant';
-          } else {
-            print('   → Redirecting to /home (unknown role)');
-            return '/home';
-          }
+          print('   → Redirecting from splash to dashboard');
+          return dashboardPath();
         } else {
           print('   → Redirecting to login (not authenticated)');
           return '/auth/login';
         }
       }
 
-      // If authenticated and on auth pages, redirect based on role
+      // If authenticated and on auth pages, redirect to dashboard
       if (isAuthenticated && currentPath.startsWith('/auth')) {
-        if (userRole == 'LANDLORD') {
-          print('   → Redirecting to /landlord (already authenticated as LANDLORD)');
-          return '/landlord';
-        } else if (userRole == 'TENANT') {
-          print('   → Redirecting to /tenant (already authenticated as TENANT)');
-          return '/tenant';
-        } else {
-          print('   → Redirecting to /home (already authenticated, unknown role)');
-          return '/home';
-        }
+        print('   → Redirecting to dashboard (already authenticated)');
+        return dashboardPath();
       }
 
       // If not authenticated and trying to access protected pages, go to login
@@ -106,6 +118,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => RegisterScreen(key: _registerKey),
       ),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(
+        path: '/role-selection',
+        builder: (context, state) => const RoleSelectionScreen(),
+      ),
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
@@ -190,9 +206,10 @@ GoRoute(
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(this.ref) {
     ref.listen<AuthState>(authProvider, (previous, next) {
-      // Only notify if auth status changed (not loading state)
+      // Notify on auth/init changes or when isNewUser is cleared (role selected)
       if (previous?.isAuthenticated != next.isAuthenticated ||
-          previous?.isInitialized != next.isInitialized) {
+          previous?.isInitialized != next.isInitialized ||
+          previous?.isNewUser != next.isNewUser) {
         notifyListeners();
       }
     });

@@ -133,7 +133,7 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
     String? customCategory,
     required String title,
     required String description,
-    File? imageFile,
+    List<File> imageFiles = const [],
   }) async {
     print('🛠️ [MAINTENANCE] Creating request: $title');
     state = state.copyWith(isSubmitting: true, clearError: true);
@@ -145,7 +145,7 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
         customCategory: customCategory,
         title: title,
         description: description,
-        imageFile: imageFile,
+        imageFiles: imageFiles,
       );
 
       print('🛠️ [MAINTENANCE] Request created: ${request.id}');
@@ -184,7 +184,7 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
           customCategory: state.selectedRequest!.customCategory,
           title: state.selectedRequest!.title,
           description: state.selectedRequest!.description,
-          imageData: state.selectedRequest!.imageData,
+          images: state.selectedRequest!.images,
           status: state.selectedRequest!.status,
           createdAt: state.selectedRequest!.createdAt,
           updatedAt: state.selectedRequest!.updatedAt,
@@ -225,7 +225,7 @@ class MaintenanceNotifier extends Notifier<MaintenanceState> {
             customCategory: r.customCategory,
             title: r.title,
             description: r.description,
-            imageData: r.imageData,
+            images: r.images,
             status: MaintenanceStatus.cancelled,
             createdAt: r.createdAt,
             updatedAt: DateTime.now(),

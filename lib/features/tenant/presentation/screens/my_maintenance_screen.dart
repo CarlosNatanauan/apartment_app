@@ -10,7 +10,8 @@ class MyMaintenanceScreen extends ConsumerStatefulWidget {
   const MyMaintenanceScreen({super.key});
 
   @override
-  ConsumerState<MyMaintenanceScreen> createState() => _MyMaintenanceScreenState();
+  ConsumerState<MyMaintenanceScreen> createState() =>
+      _MyMaintenanceScreenState();
 }
 
 class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
@@ -21,7 +22,6 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(maintenanceProvider.notifier).loadRequests();
     });
@@ -69,10 +69,10 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
+            content: const Row(
               children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
+                Icon(Icons.check_circle, color: Colors.white, size: 20),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Request cancelled successfully',
@@ -106,17 +106,51 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
     }
   }
 
+  Widget _buildStatChip(int count, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(maintenanceProvider);
     final allRequests = state.requests;
     final pendingRequests = state.pendingRequests;
     final inProgressRequests = state.inProgressRequests;
-    final completedRequests = state.completedRequests; // kept
+    final completedRequests = state.completedRequests;
     final isLoading = state.isLoading;
 
     return Scaffold(
-      // ✅ AppBar now matches "My Spaces"
       appBar: AppBar(
         title: const Text('Maintenance'),
         actions: [
@@ -125,42 +159,61 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
             onPressed: () => context.push('/profile'),
           ),
         ],
-      ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(102),
+          child: Material(
+            color: Colors.transparent,
+            child: Column(
+              children: [
+                // Stats chips row
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      _buildStatChip(
+                          allRequests.length, 'TOTAL', AppTheme.tenantColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(pendingRequests.length, 'PENDING',
+                          AppTheme.warningColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(inProgressRequests.length, 'ACTIVE',
+                          AppTheme.primaryColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(completedRequests.length, 'DONE',
+                          AppTheme.successColor),
+                    ],
+                  ),
+                ),
 
-      body: Column(
-        children: [
-          // ✅ Tab bar moved here (so AppBar height matches My Spaces)
-          Material(
-            // keeps correct ink effects + nice separation
-            child: TabBar(
-              controller: _tabController,
-              labelColor: AppTheme.tenantColor,
-              unselectedLabelColor: AppTheme.textSecondary,
-              indicatorColor: AppTheme.tenantColor,
-              tabs: [
-                Tab(text: 'All (${allRequests.length})'),
-                Tab(text: 'Pending (${pendingRequests.length})'),
-                Tab(text: 'Active (${inProgressRequests.length})'),
+                const SizedBox(height: 6),
+
+                // TabBar
+                TabBar(
+                  controller: _tabController,
+                  labelColor: AppTheme.tenantColor,
+                  unselectedLabelColor: AppTheme.textSecondary,
+                  indicatorColor: AppTheme.tenantColor,
+                  tabs: const [
+                    Tab(text: 'All'),
+                    Tab(text: 'Pending'),
+                    Tab(text: 'Active'),
+                  ],
+                ),
               ],
             ),
           ),
-
-          // ✅ content
-          Expanded(
-            child: isLoading && allRequests.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildRequestsList(allRequests, 'all'),
-                      _buildRequestsList(pendingRequests, 'pending'),
-                      _buildRequestsList(inProgressRequests, 'active'),
-                    ],
-                  ),
-          ),
-        ],
+        ),
       ),
-
+      body: isLoading && allRequests.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildRequestsList(allRequests, 'all'),
+                _buildRequestsList(pendingRequests, 'pending'),
+                _buildRequestsList(inProgressRequests, 'active'),
+              ],
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/tenant/maintenance/create'),
         icon: const Icon(Icons.add),
@@ -184,9 +237,8 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
           final request = requests[index];
           return MaintenanceRequestCard(
             request: request,
-            onTap: () => context.push(
-              '/tenant/maintenance/details/${request.id}',
-            ),
+            onTap: () =>
+                context.push('/tenant/maintenance/details/${request.id}'),
             onCancel: request.canCancel
                 ? () => _handleCancel(request.id, request.title)
                 : null,
@@ -200,22 +252,27 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
     String title;
     String message;
     IconData icon;
+    Color color;
 
     switch (type) {
       case 'pending':
         title = 'No Pending Requests';
         message = 'You have no maintenance requests awaiting response.';
         icon = Icons.pending_actions;
+        color = AppTheme.warningColor;
         break;
       case 'active':
         title = 'No Active Requests';
         message = 'You have no maintenance requests in progress.';
         icon = Icons.construction;
+        color = AppTheme.primaryColor;
         break;
       default:
         title = 'No Maintenance Requests';
-        message = 'Create a request to report any issues with your apartment.';
+        message =
+            'Create a request to report any issues with your apartment.';
         icon = Icons.build_circle_outlined;
+        color = AppTheme.tenantColor;
     }
 
     return RefreshIndicator(
@@ -233,14 +290,10 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.tenantColor.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        size: 64,
-                        color: AppTheme.tenantColor,
-                      ),
+                      child: Icon(icon, size: 64, color: color),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -257,7 +310,8 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
                     if (type == 'all') ...[
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: () => context.push('/tenant/maintenance/create'),
+                        onPressed: () =>
+                            context.push('/tenant/maintenance/create'),
                         icon: const Icon(Icons.add),
                         label: const Text('Create First Request'),
                         style: ElevatedButton.styleFrom(

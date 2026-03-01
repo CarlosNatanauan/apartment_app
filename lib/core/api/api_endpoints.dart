@@ -4,6 +4,8 @@ class ApiEndpoints {
   static const String login = '/auth/login';
   static const String me = '/auth/me';
   static const String googleAuth = '/auth/google';
+  static const String deleteAccount = '/auth/account';
+  static const String updateRole = '/auth/me/role';
 
   // Spaces
   static const String spaces = '/spaces';

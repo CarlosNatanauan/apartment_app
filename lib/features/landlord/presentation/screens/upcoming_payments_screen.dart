@@ -135,20 +135,20 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
 
   Widget _buildDayChip(int days) {
     final isSelected = _selectedDays == days;
-    
+
     return FilterChip(
       label: Text('$days days'),
       selected: isSelected,
       onSelected: (_) => _onDaysChanged(days),
       backgroundColor: AppTheme.surfaceColor,
-      selectedColor: AppTheme.primaryColor.withOpacity(0.1),
-      checkmarkColor: AppTheme.primaryColor,
+      selectedColor: AppTheme.landlordColor.withValues(alpha: 0.1),
+      checkmarkColor: AppTheme.landlordColor,
       labelStyle: TextStyle(
-        color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary,
+        color: isSelected ? AppTheme.landlordColor : AppTheme.textSecondary,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
       side: BorderSide(
-        color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,
+        color: isSelected ? AppTheme.landlordColor : AppTheme.borderColor,
       ),
     );
   }
@@ -167,7 +167,7 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppTheme.successColor.withOpacity(0.1),
+                      color: AppTheme.successColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -228,13 +228,13 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
           _buildSectionHeader(
             'Due Today',
             dueToday.length,
-            AppTheme.errorColor.withOpacity(0.8),
+            AppTheme.errorColor,
             Icons.warning_amber_rounded,
           ),
           ...dueToday.map((payment) => _UpcomingPaymentCard(
             payment: payment,
             spaceId: widget.spaceId,
-            urgencyColor: AppTheme.errorColor.withOpacity(0.8),
+            urgencyColor: AppTheme.errorColor,
           )),
         ],
         
@@ -276,12 +276,19 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: color),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: color),
+          ),
           const SizedBox(width: 8),
           Text(
             title,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -290,13 +297,13 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               '$count',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
@@ -327,32 +334,29 @@ class _UpcomingPaymentCard extends ConsumerWidget {
         onTap: () => _showMarkPaidDialog(context, ref),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // Days indicator circle
+              // Days indicator box (rounded-8)
               Container(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: urgencyColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: urgencyColor.withOpacity(0.3),
-                    width: 2,
-                  ),
+                  color: urgencyColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      payment.isOverdue 
+                      payment.isOverdue
                           ? '${-payment.daysUntilDue}'
                           : '${payment.daysUntilDue}',
                       style: TextStyle(
                         color: urgencyColor,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 17,
+                        height: 1,
                       ),
                     ),
                     Text(
@@ -360,61 +364,51 @@ class _UpcomingPaymentCard extends ConsumerWidget {
                       style: TextStyle(
                         color: urgencyColor,
                         fontSize: 9,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
               ),
-              
-              const SizedBox(width: 16),
-              
+
+              const SizedBox(width: 14),
+
               // Payment details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.person,
-                          size: 16,
-                          color: AppTheme.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            payment.tenant.fullName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      payment.tenant.fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         const Icon(
                           Icons.door_front_door_outlined,
-                          size: 14,
+                          size: 13,
                           color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           'Unit ${payment.roomNumber}',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: AppTheme.textSecondary,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: urgencyColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
+                            color: urgencyColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             payment.urgencyLabel,
@@ -430,8 +424,8 @@ class _UpcomingPaymentCard extends ConsumerWidget {
                   ],
                 ),
               ),
-              
-              // Amount
+
+              // Amount + chevron
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -439,14 +433,14 @@ class _UpcomingPaymentCard extends ConsumerWidget {
                     CurrencyFormatter.formatCents(payment.monthlyRent),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Icon(
                     Icons.chevron_right,
                     color: urgencyColor,
-                    size: 20,
+                    size: 18,
                   ),
                 ],
               ),
@@ -458,7 +452,7 @@ class _UpcomingPaymentCard extends ConsumerWidget {
   }
 
   void _showMarkPaidDialog(BuildContext context, WidgetRef ref) async {
-    final result = await showMarkPaymentDialog(
+    await showMarkPaymentDialog(
       context: context,
       spaceId: spaceId,
       leaseId: payment.leaseId,
@@ -466,7 +460,5 @@ class _UpcomingPaymentCard extends ConsumerWidget {
       roomNumber: payment.roomNumber,
       amount: payment.monthlyRent,
     );
-
-    // Dialog already handles success message and refresh
   }
 }

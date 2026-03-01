@@ -220,10 +220,11 @@ class ApiClient {
   // DELETE request
   Future<ApiResponse<T>> delete<T>(
     String path, {
+    dynamic data,
     T Function(dynamic)? fromJson,
   }) async {
     try {
-      final response = await _dio.delete(path);
+      final response = await _dio.delete(path, data: data);
       
       // Check for errors AFTER getting response
       _checkAndThrowError(response);

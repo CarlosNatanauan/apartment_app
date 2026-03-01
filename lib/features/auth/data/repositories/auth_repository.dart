@@ -155,12 +155,18 @@ Future<User> register({
     }
   }
 
-  // Google Sign-In
-  Future<User> googleSignIn({required String idToken}) async {
+  // Google Sign-In — returns user + isNewUser flag
+  Future<({User user, bool isNewUser})> googleSignIn({
+    required String idToken,
+    String? role,
+  }) async {
     try {
       final response = await _apiClient.post(
         ApiEndpoints.googleAuth,
-        data: {'idToken': idToken},
+        data: {
+          'idToken': idToken,
+          if (role != null) 'role': role,
+        },
         fromJson: (data) => LoginResponse.fromJson(data),
       );
 
@@ -179,11 +185,53 @@ Future<User> register({
       // Save user data
       await _storage.saveUser(user);
 
-      return user;
+      return (user: user, isNewUser: loginResponse.isNewUser);
     } on ApiException {
       rethrow;
     } catch (e) {
       throw Exception('Google sign-in failed: ${e.toString()}');
+    }
+  }
+
+  // Update role (used after Google sign-in for new users)
+  Future<User> updateRole(String role) async {
+    try {
+      await _apiClient.patch(
+        ApiEndpoints.updateRole,
+        data: {'role': role},
+        fromJson: (data) => data,
+      );
+
+      // Fetch updated user and cache it
+      final user = await getCurrentUser();
+      await _storage.saveUser(user);
+      return user;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to update role: ${e.toString()}');
+    }
+  }
+
+  // Delete account
+  Future<void> deleteAccount({String? password}) async {
+    try {
+      final response = await _apiClient.delete(
+        ApiEndpoints.deleteAccount,
+        data: password != null ? {'password': password} : null,
+        fromJson: (data) => data,
+      );
+
+      if (!response.ok) {
+        throw Exception('Failed to delete account');
+      }
+
+      // Clear local storage after successful deletion
+      await _storage.clearAll();
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      throw Exception('Failed to delete account: ${e.toString()}');
     }
   }
 

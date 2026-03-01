@@ -55,19 +55,29 @@ enum MaintenanceCategory {
 // MODELS
 // =======================================================
 
+class MaintenanceImage {
+  final String id;
+  final String imagePath;
+
+  const MaintenanceImage({required this.id, required this.imagePath});
+
+  factory MaintenanceImage.fromJson(Map<String, dynamic> json) {
+    return MaintenanceImage(
+      id: (json['imageId'] as String?) ?? (json['id'] as String?) ?? '',
+      imagePath: json['imagePath'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'imageId': id, 'imagePath': imagePath};
+}
+
 class MaintenanceRequest {
   final String id;
   final MaintenanceCategory category;
   final String? customCategory;
   final String title;
   final String description;
-
-  /// OLD API (base64 data URL)
-  final String? imageData;
-
-  /// NEW API (relative path like "/uploads/maintenance/uuid.jpg")
-  final String? imageUrl;
-
+  final List<MaintenanceImage> images;
   final MaintenanceStatus status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -90,14 +100,15 @@ class MaintenanceRequest {
   // Comments
   final int commentCount;
 
+  bool get hasImages => images.isNotEmpty;
+
   MaintenanceRequest({
     required this.id,
     required this.category,
     this.customCategory,
     required this.title,
     required this.description,
-    this.imageData,
-    this.imageUrl,
+    this.images = const [],
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -148,9 +159,11 @@ class MaintenanceRequest {
     final title = (json['title'] as String?) ?? '';
     final description = (json['description'] as String?) ?? '';
 
-    // image (support old + new backend)
-    final imageData = json['imageData'] as String?;
-    final imageUrl = json['imageUrl'] as String?;
+    // images
+    final imagesJson = json['images'] as List? ?? [];
+    final images = imagesJson
+        .map((i) => MaintenanceImage.fromJson(i as Map<String, dynamic>))
+        .toList();
 
     // status
     final statusStr = (json['status'] as String?) ?? 'PENDING';
@@ -194,8 +207,7 @@ class MaintenanceRequest {
       customCategory: customCategory,
       title: title,
       description: description,
-      imageData: imageData,
-      imageUrl: imageUrl,
+      images: images,
       status: status,
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -219,8 +231,7 @@ class MaintenanceRequest {
       if (customCategory != null) 'customCategory': customCategory,
       'title': title,
       'description': description,
-      if (imageData != null) 'imageData': imageData,
-      if (imageUrl != null) 'imageUrl': imageUrl,
+      'images': images.map((i) => i.toJson()).toList(),
       'status': status.value,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -346,8 +357,7 @@ class MaintenanceRequestDetails extends MaintenanceRequest {
     super.customCategory,
     required super.title,
     required super.description,
-    super.imageData,
-    super.imageUrl,
+    super.images,
     required super.status,
     required super.createdAt,
     required super.updatedAt,
@@ -378,8 +388,7 @@ class MaintenanceRequestDetails extends MaintenanceRequest {
       customCategory: baseRequest.customCategory,
       title: baseRequest.title,
       description: baseRequest.description,
-      imageData: baseRequest.imageData,
-      imageUrl: baseRequest.imageUrl,
+      images: baseRequest.images,
       status: baseRequest.status,
       createdAt: baseRequest.createdAt,
       updatedAt: baseRequest.updatedAt,

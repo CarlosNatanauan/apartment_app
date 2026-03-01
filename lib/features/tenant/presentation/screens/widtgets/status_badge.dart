@@ -15,13 +15,13 @@ class StatusBadge extends StatelessWidget {
   Color _getBackgroundColor() {
     switch (status) {
       case MaintenanceStatus.pending:
-        return AppTheme.warningColor.withOpacity(0.1);
+        return AppTheme.warningColor.withValues(alpha: 0.1);
       case MaintenanceStatus.inProgress:
-        return AppTheme.primaryColor.withOpacity(0.1);
+        return AppTheme.primaryColor.withValues(alpha: 0.1);
       case MaintenanceStatus.completed:
-        return AppTheme.successColor.withOpacity(0.1);
+        return AppTheme.successColor.withValues(alpha: 0.1);
       case MaintenanceStatus.cancelled:
-        return AppTheme.textSecondary.withOpacity(0.1);
+        return AppTheme.textSecondary.withValues(alpha: 0.1);
     }
   }
 

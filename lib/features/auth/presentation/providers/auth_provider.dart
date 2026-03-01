@@ -11,12 +11,14 @@ class AuthState {
   final bool isLoading;
   final String? error;
   final bool isInitialized;
+  final bool isNewUser; // true after first Google sign-in — triggers role selection
 
   AuthState({
     this.user,
     this.isLoading = false,
     this.error,
     this.isInitialized = false,
+    this.isNewUser = false,
   });
 
   // Computed property
@@ -27,6 +29,7 @@ class AuthState {
     bool? isLoading,
     String? error,
     bool? isInitialized,
+    bool? isNewUser,
     bool clearUser = false,
     bool clearError = false,
   }) {
@@ -35,11 +38,12 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
       isInitialized: isInitialized ?? this.isInitialized,
+      isNewUser: isNewUser ?? this.isNewUser,
     );
   }
 
   @override
-  String toString() => 'AuthState(user: $user, isLoading: $isLoading, isAuthenticated: $isAuthenticated, isInitialized: $isInitialized)';
+  String toString() => 'AuthState(user: $user, isLoading: $isLoading, isAuthenticated: $isAuthenticated, isInitialized: $isInitialized, isNewUser: $isNewUser)';
 }
 
 // Auth notifier using Notifier (flutter_riverpod 3.x)
@@ -196,20 +200,21 @@ Future<void> register(
   }
 
   // Google Sign-In
-  Future<void> googleSignIn(String idToken) async {
+  Future<void> googleSignIn(String idToken, {String? role}) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       print('🔐 Attempting Google sign-in');
 
-      final user = await _repository.googleSignIn(idToken: idToken);
+      final result = await _repository.googleSignIn(idToken: idToken, role: role);
 
-      print('✅ Google sign-in successful: $user');
+      print('✅ Google sign-in successful: ${result.user} isNewUser=${result.isNewUser}');
 
       state = state.copyWith(
-        user: user,
+        user: result.user,
         isLoading: false,
         isInitialized: true,
+        isNewUser: result.isNewUser,
       );
     } on ApiException catch (e) {
       print('❌ Google sign-in failed (ApiException): ${e.message}');
@@ -245,6 +250,45 @@ Future<void> register(
     } catch (e) {
       print('❌ Change password failed (Exception): $e');
       throw Exception(_extractErrorMessage(e));
+    }
+  }
+
+  // Delete account
+  Future<void> deleteAccount(String? password) async {
+    try {
+      print('🗑️ Attempting to delete account');
+      await _repository.deleteAccount(password: password);
+      print('✅ Account deleted successfully');
+      state = AuthState(isInitialized: true);
+    } on ApiException catch (e) {
+      print('❌ Delete account failed (ApiException): ${e.message}');
+      rethrow;
+    } catch (e) {
+      print('❌ Delete account failed (Exception): $e');
+      throw Exception(_extractErrorMessage(e));
+    }
+  }
+
+  // Update role (for new Google users who need to select their role)
+  Future<void> updateRole(String role) async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      print('🔄 Updating role to $role');
+      final user = await _repository.updateRole(role);
+      print('✅ Role updated: $user');
+      state = state.copyWith(
+        user: user,
+        isLoading: false,
+        isNewUser: false,
+      );
+    } on ApiException catch (e) {
+      print('❌ Update role failed (ApiException): ${e.message}');
+      state = state.copyWith(isLoading: false, error: e.message);
+      rethrow;
+    } catch (e) {
+      print('❌ Update role failed (Exception): $e');
+      state = state.copyWith(isLoading: false, error: _extractErrorMessage(e));
+      rethrow;
     }
   }
 

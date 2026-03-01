@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub get)",
+      "Bash(flutter analyze lib/features/landlord/presentation/screens/space_details_screen.dart lib/features/tenant/presentation/screens/join_space_screen.dart)",
+      "Bash(flutter analyze lib/features/landlord/presentation/screens/space_details_screen.dart lib/features/landlord/presentation/screens/widgets/cards/space_card.dart)"
+    ]
+  }
+}

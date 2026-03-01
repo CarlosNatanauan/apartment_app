@@ -183,14 +183,33 @@ class _MaintenanceDetailsScreenState
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Status Badge
+                // Status Badge & date
                 Row(
                   children: [
                     StatusBadge(status: request.status),
                     const Spacer(),
-                    Text(
-                      _formatDate(request.createdAt),
-                      style: Theme.of(context).textTheme.bodySmall,
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.backgroundColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.schedule_outlined,
+                            size: 12,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDate(request.createdAt),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -233,8 +252,17 @@ class _MaintenanceDetailsScreenState
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.apartment, size: 20),
-                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.tenantColor
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.apartment_outlined,
+                                  size: 16, color: AppTheme.tenantColor),
+                            ),
+                            const SizedBox(width: 10),
                             Text(
                               'Location',
                               style: Theme.of(context)
@@ -244,18 +272,42 @@ class _MaintenanceDetailsScreenState
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '${request.spaceName} - Unit ${request.roomNumber}',
-                          style: Theme.of(context).textTheme.bodyLarge,
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            const Icon(Icons.business_outlined,
+                                size: 14, color: AppTheme.textSecondary),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                request.spaceName ?? '',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.meeting_room_outlined,
+                                size: 14, color: AppTheme.textSecondary),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Unit ${request.roomNumber}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(color: AppTheme.textSecondary),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                // Image (if present)
-                if (request.imageUrl != null || request.imageData != null) ...[
+                // Images (if present)
+                if (request.hasImages) ...[
                   const SizedBox(height: 16),
                   Card(
                     child: Padding(
@@ -265,10 +317,10 @@ class _MaintenanceDetailsScreenState
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.photo, size: 20),
+                              const Icon(Icons.photo_library, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                'Photo',
+                                'Photos (${request.images.length})',
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -277,24 +329,27 @@ class _MaintenanceDetailsScreenState
                             ],
                           ),
                           const SizedBox(height: 12),
-                          if (request.imageUrl != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                '${AppConstants.baseUrl}${request.imageUrl}',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
-                            )
-                          else if (request.imageData != null)
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.memory(
-                                Uri.parse(request.imageData!).data!.contentAsBytes(),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
+                          SizedBox(
+                            height: 200,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: request.images.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(width: 8),
+                              itemBuilder: (context, index) {
+                                final img = request.images[index];
+                                return ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    '${AppConstants.baseUrl}${img.imagePath}',
+                                    width: 200,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                );
+                              },
                             ),
+                          ),
                         ],
                       ),
                     ),
@@ -415,7 +470,7 @@ class _MaintenanceDetailsScreenState
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -485,8 +540,15 @@ class _MaintenanceDetailsScreenState
           children: [
             Row(
               children: [
-                Icon(icon, size: 20),
-                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.tenantColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 16, color: AppTheme.tenantColor),
+                ),
+                const SizedBox(width: 10),
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -495,7 +557,7 @@ class _MaintenanceDetailsScreenState
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               content,
               style: Theme.of(context).textTheme.bodyLarge,

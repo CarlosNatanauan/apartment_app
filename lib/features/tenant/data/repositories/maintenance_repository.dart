@@ -11,42 +11,55 @@ class MaintenanceRepository {
   MaintenanceRepository(this._apiClient);
 
   Future<MaintenanceRequest> createRequest({
-    required String roomId, // ✅ roomId only
+    required String roomId,
     required MaintenanceCategory category,
     String? customCategory,
     required String title,
     required String description,
-    File? imageFile, // ✅ real file (optional)
+    List<File> imageFiles = const [],
   }) async {
+    print('📤 [REPO] createRequest — roomId=$roomId, category=${category.value}, title=$title, images=${imageFiles.length}');
     try {
-      final formData = FormData.fromMap({
-        'roomId': roomId,
-        'category': category.value,
-        'title': title,
-        'description': description,
+      final formData = FormData();
+      formData.fields.addAll([
+        MapEntry('roomId', roomId),
+        MapEntry('category', category.value),
+        MapEntry('title', title),
+        MapEntry('description', description),
         if (customCategory != null && category == MaintenanceCategory.other)
-          'customCategory': customCategory,
-        if (imageFile != null)
-          'image': await MultipartFile.fromFile(
-            imageFile.path,
-            filename: imageFile.path.split('/').last,
+          MapEntry('customCategory', customCategory),
+      ]);
+      for (final file in imageFiles) {
+        print('📎 [REPO] attaching image: ${file.path}');
+        formData.files.add(MapEntry(
+          'images',
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
           ),
-      });
+        ));
+      }
 
+      print('📡 [REPO] sending POST /maintenance...');
       final response = await _apiClient.postMultipart(
         '/maintenance',
         formData: formData,
         fromJson: (data) => MaintenanceRequest.fromJson(data),
       );
 
+      print('📥 [REPO] response ok=${response.ok}, data=${response.data}');
+
       if (!response.ok || response.data == null) {
         throw Exception('Failed to create maintenance request');
       }
 
       return response.data!;
-    } on ApiException {
+    } on ApiException catch (e) {
+      print('❌ [REPO] ApiException: status=${e.statusCode} message=${e.message}');
       rethrow;
-    } catch (e) {
+    } catch (e, stack) {
+      print('❌ [REPO] Exception: $e');
+      print('❌ [REPO] Stack: $stack');
       throw Exception('Failed to create maintenance request: ${e.toString()}');
     }
   }

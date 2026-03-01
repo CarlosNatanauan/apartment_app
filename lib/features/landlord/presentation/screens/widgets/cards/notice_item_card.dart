@@ -16,120 +16,145 @@ class NoticeItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isExpired = notice.isExpired;
+    final accentColor = isExpired ? AppTheme.textSecondary : AppTheme.landlordColor;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: notice.isExpired 
-            ? AppTheme.textHint.withOpacity(0.05)
-            : AppTheme.primaryColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
+        color: isExpired
+            ? AppTheme.textHint.withValues(alpha: 0.05)
+            : AppTheme.landlordColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: notice.isExpired
-              ? AppTheme.textHint.withOpacity(0.2)
-              : AppTheme.primaryColor.withOpacity(0.2),
+          color: isExpired
+              ? AppTheme.textHint.withValues(alpha: 0.15)
+              : AppTheme.landlordColor.withValues(alpha: 0.15),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Emoji
-              Text(
-                notice.emoji,
-                style: const TextStyle(fontSize: 20),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Emoji box
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              
-              const SizedBox(width: 8),
-              
-              // Title
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      notice.title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: notice.isExpired
-                            ? AppTheme.textSecondary
-                            : AppTheme.textPrimary,
-                        decoration: notice.isExpired
-                            ? TextDecoration.lineThrough
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Text(
-                          notice.timeAgo,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textHint,
-                          ),
-                        ),
-                        if (notice.hasExpiry) ...[
-                          const SizedBox(width: 8),
-                          const Text(
-                            '•',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.textHint,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            notice.expiryText,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: notice.isExpired
-                                  ? AppTheme.errorColor
-                                  : AppTheme.warningColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
+              child: Center(
+                child: Text(
+                  notice.emoji,
+                  style: const TextStyle(fontSize: 18),
                 ),
-              ),
-              
-              // Delete button
-              if (showDeleteButton && onDelete != null)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: onDelete,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  color: AppTheme.textSecondary,
-                  visualDensity: VisualDensity.compact,
-                ),
-            ],
-          ),
-          
-          const SizedBox(height: 8),
-          
-          // Content
-          Padding(
-            padding: const EdgeInsets.only(left: 28),
-            child: Text(
-              notice.content,
-              style: TextStyle(
-                fontSize: 13,
-                color: notice.isExpired
-                    ? AppTheme.textSecondary
-                    : AppTheme.textPrimary,
-                height: 1.4,
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(width: 12),
+
+            // Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notice.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: isExpired
+                                ? AppTheme.textSecondary
+                                : AppTheme.textPrimary,
+                            decoration:
+                                isExpired ? TextDecoration.lineThrough : null,
+                          ),
+                        ),
+                      ),
+                      if (showDeleteButton && onDelete != null) ...[
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: onDelete,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.textHint.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Text(
+                    notice.content,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isExpired
+                          ? AppTheme.textSecondary
+                          : AppTheme.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Meta row: timeAgo + expiry pill
+                  Row(
+                    children: [
+                      Text(
+                        notice.timeAgo,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textHint,
+                        ),
+                      ),
+                      if (notice.hasExpiry) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: (isExpired
+                                    ? AppTheme.errorColor
+                                    : AppTheme.warningColor)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            notice.expiryText,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isExpired
+                                  ? AppTheme.errorColor
+                                  : AppTheme.warningColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

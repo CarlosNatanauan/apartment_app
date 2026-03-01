@@ -1,4 +1,3 @@
-import 'package:apartment_app/core/api/api_response.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/landlord_maintenance_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/providers/spaces_provider.dart';
 import 'package:apartment_app/features/landlord/presentation/screens/widgets/cards/landlord_maintenance_card.dart';
@@ -25,7 +24,6 @@ class _AllSpacesMaintenanceScreenState
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(spacesProvider.notifier).loadSpaces();
       ref.read(landlordMaintenanceProvider.notifier).loadAllSpacesRequests();
@@ -51,15 +49,47 @@ class _AllSpacesMaintenanceScreenState
   }
 
   void _handleSpaceFilterChange(String? spaceId) {
-    setState(() {
-      _selectedSpaceId = spaceId;
-    });
-
+    setState(() => _selectedSpaceId = spaceId);
     if (spaceId == null) {
       ref.read(landlordMaintenanceProvider.notifier).loadAllSpacesRequests();
     } else {
       ref.read(landlordMaintenanceProvider.notifier).loadSpaceRequests(spaceId);
     }
+  }
+
+  Widget _buildStatChip(int count, String label, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.4,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -83,76 +113,89 @@ class _AllSpacesMaintenanceScreenState
             onPressed: () => context.push('/profile'),
           ),
         ],
-
-        // ✅ Match the other screens: same AppBar structure, but with a clean bottom area.
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(116),
+          preferredSize: const Size.fromHeight(152),
           child: Material(
-            // keeps background consistent with AppBar theme
             color: Colors.transparent,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Space Filter Dropdown
+                // Space filter selector
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: DropdownButtonFormField<String?>(
-                    value: _selectedSpaceId,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'Filter by Space',
-                      prefixIcon: const Icon(Icons.filter_list),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Colors.grey.withOpacity(0.25),
+                  padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                  child: Row(
+                    children: [
+                      // Icon box
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppTheme.landlordColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.business_outlined,
+                          color: AppTheme.landlordColor,
+                          size: 18,
                         ),
                       ),
-                    ),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Row(
-                          children: [
-                            Icon(Icons.select_all, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'All Spaces',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButton<String?>(
+                          value: _selectedSpaceId,
+                          isExpanded: true,
+                          underline: const SizedBox(),
+                          icon: const Icon(
+                            Icons.expand_more,
+                            color: AppTheme.landlordColor,
+                            size: 20,
+                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                          items: [
+                            const DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('All Spaces'),
                             ),
-                          ],
-                        ),
-                      ),
-                      ...spaces.map((space) {
-                        return DropdownMenuItem<String?>(
-                          value: space.id,
-                          child: Row(
-                            children: [
-                              const Icon(Icons.business, size: 20),
-                              const SizedBox(width: 8),
-                              Flexible(
+                            ...spaces.map(
+                              (space) => DropdownMenuItem<String?>(
+                                value: space.id,
                                 child: Text(
                                   space.name,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ],
-                          ),
-                        );
-                      }),
+                            ),
+                          ],
+                          onChanged: _handleSpaceFilterChange,
+                        ),
+                      ),
                     ],
-                    onChanged: _handleSpaceFilterChange,
                   ),
                 ),
+
+                // Stats chips row
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Row(
+                    children: [
+                      _buildStatChip(
+                          allRequests.length, 'TOTAL', AppTheme.landlordColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(pendingRequests.length, 'PENDING',
+                          AppTheme.warningColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(inProgressRequests.length, 'ACTIVE',
+                          AppTheme.tenantColor),
+                      const SizedBox(width: 6),
+                      _buildStatChip(completedRequests.length, 'DONE',
+                          AppTheme.successColor),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 6),
 
                 // Tabs
                 TabBar(
@@ -161,11 +204,11 @@ class _AllSpacesMaintenanceScreenState
                   unselectedLabelColor: AppTheme.textSecondary,
                   indicatorColor: AppTheme.landlordColor,
                   isScrollable: true,
-                  tabs: [
-                    Tab(text: 'All (${allRequests.length})'),
-                    Tab(text: 'Pending (${pendingRequests.length})'),
-                    Tab(text: 'In Progress (${inProgressRequests.length})'),
-                    Tab(text: 'Completed (${completedRequests.length})'),
+                  tabs: const [
+                    Tab(text: 'All'),
+                    Tab(text: 'Pending'),
+                    Tab(text: 'In Progress'),
+                    Tab(text: 'Completed'),
                   ],
                 ),
               ],
@@ -217,22 +260,26 @@ class _AllSpacesMaintenanceScreenState
     String title;
     String message;
     IconData icon;
+    Color color;
 
     switch (type) {
       case 'pending':
         title = 'No Pending Requests';
         message = 'No maintenance requests awaiting your response.';
         icon = Icons.pending_actions;
+        color = AppTheme.warningColor;
         break;
       case 'inprogress':
-        title = 'No In Progress Requests';
+        title = 'No Active Requests';
         message = 'No maintenance requests currently in progress.';
         icon = Icons.construction;
+        color = AppTheme.tenantColor;
         break;
       case 'completed':
         title = 'No Completed Requests';
-        message = 'No completed maintenance requests yet.';
+        message = 'Completed maintenance requests will appear here.';
         icon = Icons.check_circle_outline;
+        color = AppTheme.successColor;
         break;
       default:
         title = 'No Maintenance Requests';
@@ -240,6 +287,7 @@ class _AllSpacesMaintenanceScreenState
             ? 'No maintenance requests across all your spaces.'
             : 'No maintenance requests for this space.';
         icon = Icons.build_circle_outlined;
+        color = AppTheme.landlordColor;
     }
 
     return RefreshIndicator(
@@ -257,14 +305,10 @@ class _AllSpacesMaintenanceScreenState
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppTheme.landlordColor.withOpacity(0.1),
+                        color: color.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        icon,
-                        size: 64,
-                        color: AppTheme.landlordColor,
-                      ),
+                      child: Icon(icon, size: 64, color: color),
                     ),
                     const SizedBox(height: 24),
                     Text(

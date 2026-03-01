@@ -66,23 +66,37 @@ class AuditLog {
         return 'Left Space';
       case 'REMOVE_TENANT':
         return 'Tenant Removed';
+      case 'ROOM_REQUEST':
+        return 'Unit Request';
+      case 'LEASE_APPROVE':
+        return 'Lease Approved';
+      case 'LEASE_REJECT':
+        return 'Lease Rejected';
+      case 'LEASE_END_LANDLORD':
+        return 'Lease Ended by Landlord';
+      case 'LEASE_END_TENANT':
+        return 'Lease Ended by Tenant';
+      case 'CREATE_MAINTENANCE':
+        return 'Maintenance Request';
+      case 'CANCEL_MAINTENANCE':
+        return 'Request Cancelled';
+      case 'UPDATE_MAINTENANCE_STATUS':
+        return 'Status Updated';
       default:
         return action.replaceAll('_', ' ');
     }
   }
 
   String get category {
+    if (action.contains('MAINTENANCE')) return 'MAINTENANCE';
     if (action.contains('SPACE')) return 'SPACE';
-    if (action.contains('ROOM')) return 'ROOM';
-    if (action.contains('JOIN') || action.contains('APPROVE') || action.contains('REJECT') || action.contains('MOVE') || action.contains('LEAVE') || action.contains('REMOVE')) {
-      return 'MEMBERSHIP';
-    }
-    return 'OTHER';
+    if (action == 'CREATE_ROOM' || action == 'DELETE_ROOM') return 'UNIT';
+    return 'MEMBERSHIP';
   }
 
   String get details {
     if (meta == null) return '';
-    
+
     switch (action) {
       case 'UPDATE_SPACE':
         return 'Changed from "${meta!['oldName']}" to "${meta!['newName']}"';
@@ -92,8 +106,14 @@ class AuditLog {
         return 'Unit changed';
       case 'APPROVE':
         return 'Status: ${meta!['from']} → ${meta!['to']}';
+      case 'LEASE_APPROVE':
+        return 'Status: ${meta!['from']} → ${meta!['to']}';
       case 'CREATE_SPACE':
         return 'Join code: ${meta!['joinCode']}';
+      case 'CREATE_MAINTENANCE':
+        return meta!['title'] as String? ?? '';
+      case 'UPDATE_MAINTENANCE_STATUS':
+        return 'Status: ${meta!['from']} → ${meta!['to']}';
       default:
         return '';
     }
