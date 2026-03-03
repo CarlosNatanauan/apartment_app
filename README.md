@@ -24,10 +24,10 @@ A fullstack mobile app for landlords to manage spaces, rooms, and tenants — an
 ## Screenshots
 
 ### Tenant
-<img src="https://github.com/user-attachments/assets/af500198-bc52-4041-b5c2-2f95b9150494" width="1000" alt="Tenant Screens" />
+<img width="3100" height="1700" alt="tenant" src="https://github.com/user-attachments/assets/4a4140f8-9437-4eb8-8541-b2a5ac1662a2" />
 
 ### Landlord
-<img src="https://github.com/user-attachments/assets/120fe48c-39fa-4445-b4dc-8cf727973982" width="1000" alt="Landlord Screens" />
+<img width="3100" height="1700" alt="landlord" src="https://github.com/user-attachments/assets/df3364de-4a3c-44b6-bb73-c8be9413f13f" />
 
 ---
 
