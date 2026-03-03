@@ -196,7 +196,7 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
                   tabs: const [
                     Tab(text: 'All'),
                     Tab(text: 'Pending'),
-                    Tab(text: 'Active'),
+                    Tab(text: 'In Progress'),
                   ],
                 ),
               ],
@@ -262,7 +262,7 @@ class _MyMaintenanceScreenState extends ConsumerState<MyMaintenanceScreen>
         color = AppTheme.warningColor;
         break;
       case 'active':
-        title = 'No Active Requests';
+        title = 'No In Progress Requests';
         message = 'You have no maintenance requests in progress.';
         icon = Icons.construction;
         color = AppTheme.primaryColor;

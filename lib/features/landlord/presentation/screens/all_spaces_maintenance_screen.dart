@@ -270,7 +270,7 @@ class _AllSpacesMaintenanceScreenState
         color = AppTheme.warningColor;
         break;
       case 'inprogress':
-        title = 'No Active Requests';
+        title = 'No In Progress Requests';
         message = 'No maintenance requests currently in progress.';
         icon = Icons.construction;
         color = AppTheme.tenantColor;
