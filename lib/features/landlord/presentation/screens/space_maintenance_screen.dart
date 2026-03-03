@@ -141,7 +141,7 @@ class _SpaceMaintenanceScreenState extends ConsumerState<SpaceMaintenanceScreen>
                   tabs: const [
                     Tab(text: 'All'),
                     Tab(text: 'Pending'),
-                    Tab(text: 'Active'),
+                    Tab(text: 'In Progress'),
                     Tab(text: 'Completed'),
                   ],
                 ),
@@ -202,7 +202,7 @@ class _SpaceMaintenanceScreenState extends ConsumerState<SpaceMaintenanceScreen>
         color = AppTheme.warningColor;
         break;
       case 'active':
-        title = 'No Active Requests';
+        title = 'No In Progress Requests';
         message = 'No maintenance work is currently in progress.';
         icon = Icons.construction;
         color = AppTheme.tenantColor;
